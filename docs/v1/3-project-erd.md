@@ -62,6 +62,8 @@ domain_blocklist -- optional
 
 ---
 
+skrol-owned tables should use PostgreSQL 18 `uuidv7()` defaults for primary keys.
+
 ## 3. Recommended Comprehensive Mermaid ERD
 
 ```mermaid
@@ -102,7 +104,7 @@ erDiagram
     }
 
     LINKS {
-        text id PK
+        uuid id PK
         text user_id FK
         text code UK
         text destination_url
@@ -116,7 +118,7 @@ erDiagram
     }
 
     CLICK_EVENTS {
-        text id PK
+        uuid id PK
         text link_id FK
         timestamptz clicked_at
         text referrer_domain
@@ -128,7 +130,7 @@ erDiagram
     }
 
     LINK_AUDIT_LOGS {
-        text id PK
+        uuid id PK
         text link_id FK
         text user_id FK
         text actor_api_key_id
@@ -139,7 +141,7 @@ erDiagram
     }
 
     DOMAIN_BLOCKLIST {
-        text id PK
+        uuid id PK
         text domain UK
         text reason
         text created_by_user_id FK

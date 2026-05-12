@@ -45,10 +45,12 @@ Use the following MVP stack:
 | Backend             | Elysia on Bun                         |
 | Frontend            | Vite + TanStack Router + TypeScript   |
 | SQL builder         | Kysely                                |
+| Migrations          | kysely-ctl                            |
 | Auth                | Better Auth                           |
 | API keys            | Better Auth API Key plugin            |
-| Database            | PostgreSQL                            |
-| Cache / rate limits | Redis                                 |
+| Database            | PostgreSQL 18                         |
+| Cache / rate limits | Redis 8                               |
+| Redis client        | ioredis                               |
 | Logging             | Pino                                  |
 | Error monitoring    | Sentry                                |
 | Hosting             | VPS                                   |
@@ -148,6 +150,8 @@ Do not hard-code speculative physical Better Auth table names in skrol migration
 
 ### 5.2 skrol-Owned Entities
 
+skrol-owned tables should use PostgreSQL 18 native `uuidv7()` defaults for primary keys. Implement migrations with Kysely's schema builder; use `sql` only when a schema-builder method is unavailable.
+
 #### `user_profiles`
 
 Purpose: skrol-specific user metadata, especially role.
@@ -170,6 +174,7 @@ Purpose: central short-link entity.
 Columns:
 
 - `id text primary key`
+- `id uuid primary key default uuidv7()`
 - `user_id text not null`
 - `code text not null unique`
 - `destination_url text not null`
@@ -200,7 +205,7 @@ Purpose: privacy-conscious analytics events for successful redirects.
 
 Columns:
 
-- `id text primary key`
+- `id uuid primary key default uuidv7()`
 - `link_id text not null`
 - `clicked_at timestamptz not null default now()`
 - `referrer_domain text null`
@@ -231,7 +236,7 @@ Purpose: audit trail for sensitive link lifecycle changes.
 
 Columns:
 
-- `id text primary key`
+- `id uuid primary key default uuidv7()`
 - `link_id text not null`
 - `user_id text null`
 - `actor_api_key_id text null`
@@ -257,7 +262,7 @@ Purpose: reject known abusive or disallowed destination domains.
 
 Columns:
 
-- `id text primary key`
+- `id uuid primary key default uuidv7()`
 - `domain text not null unique`
 - `reason text null`
 - `created_by_user_id text null`
@@ -702,10 +707,11 @@ Deliverables:
 - Bun/Elysia backend scaffold
 - Vite/TanStack Router frontend scaffold
 - shared TypeScript configuration
-- local PostgreSQL and Redis setup
+- local PostgreSQL 18 and Redis 8 setup
 - `.env.example`
 - Kysely database connection
-- migration workflow selected
+- kysely-ctl migration workflow selected
+- Kysely schema-builder migrations for skrol-owned tables
 - Pino configured
 - baseline `/health`
 - basic CI: lint, typecheck, test
@@ -728,6 +734,7 @@ Objective: implement the core short-link primitive and public redirect path.
 Deliverables:
 
 - skrol-owned migrations for `user_profiles`, `links`, `click_events`, `link_audit_logs`, and optionally `domain_blocklist`
+- skrol-owned migrations for `user_profiles`, `links`, `click_events`, `link_audit_logs`, and optionally `domain_blocklist`, with `uuidv7()` primary keys for skrol-owned tables
 - alias validation
 - URL validation
 - short-code generator
@@ -1099,8 +1106,8 @@ Recommended build order:
 
 ## 22. Immediate Next Actions
 
-1. Create the repository structure and local Docker Compose services for PostgreSQL and Redis.
-2. Select the Kysely-compatible migration workflow.
+1. Create the repository structure and local Docker Compose services for PostgreSQL 18 and Redis 8.
+2. Select the `kysely-ctl` migration workflow.
 3. Generate and inspect Better Auth schema, including API Key plugin tables.
 4. Write skrol-owned migrations only after confirming Better Auth physical table names.
 5. Implement URL validation and alias validation first, because they sit on the critical path for API, dashboard, redirect safety, and abuse prevention.

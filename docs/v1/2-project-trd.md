@@ -24,14 +24,14 @@ The system will be implemented as a VPS-hosted web application using:
 | Frontend              | Vite + TanStack Router       |
 | SQL builder           | Kysely                       |
 | Authentication        | Better Auth + API Key plugin |
-| Primary database      | PostgreSQL                   |
-| Cache / rate limiting | Redis                        |
+| Primary database      | PostgreSQL 18                |
+| Cache / rate limiting | Redis 8                      |
 | Logging               | Pino                         |
 | Error monitoring      | Sentry                       |
 | Hosting               | VPS                          |
 | Reverse proxy         | Nginx                        |
 
-PostgreSQL is the production database for the MVP. SQLite is acceptable for local experimentation only, not for the deployed MVP.
+PostgreSQL 18 is the production database for the MVP. SQLite is acceptable for local experimentation only, not for the deployed MVP.
 
 ---
 
@@ -112,8 +112,8 @@ The following are explicitly excluded from the MVP:
                   +--> Analytics ingestion
                   +--> Admin controls
                   |
-                  +--> PostgreSQL via Kysely
-                  +--> Redis for rate limits and cache
+                  +--> PostgreSQL 18 via Kysely
+                  +--> Redis 8 for rate limits and cache
                   +--> Pino structured logging
 ```
 
@@ -124,7 +124,7 @@ For MVP, skrol will run as a single VPS deployment containing:
 - Reverse proxy.
 - Elysia backend process.
 - Built Vite frontend assets.
-- PostgreSQL database.
+- PostgreSQL 18 database.
 - Redis instance.
 - Log output using Pino.
 - Deployment and migration scripts.
@@ -175,6 +175,10 @@ The dashboard is a utility interface, not the primary product surface. It must s
 
 The application will use **Kysely** as the SQL query builder.
 
+Database migrations will use **kysely-ctl**.
+
+Migrations should be implemented with Kysely's schema builder, not handwritten raw SQL files. Use the `sql` tag only for safe SQL expressions that the schema builder does not model directly.
+
 Rationale:
 
 - Explicit SQL behavior.
@@ -191,7 +195,9 @@ API authentication will use Better Auth's API Key plugin. API keys remain separa
 
 ## 5.5 Primary Database
 
-The production database will be **PostgreSQL**.
+The production database will be **PostgreSQL 18**.
+
+skrol-owned tables should use PostgreSQL 18's native `uuidv7()` generation for primary keys.
 
 Rationale:
 
@@ -212,6 +218,10 @@ Redis will be used for:
 - Temporary cache entries.
 - Optional hot redirect cache.
 - Short-lived operational state.
+
+The Redis version will be Redis 8.
+
+The Redis client library will be **ioredis**.
 
 Redis must not be the source of truth for:
 
@@ -390,7 +400,7 @@ Table: `links`
 
 | Column            |        Type | Required | Notes                                      |
 | ----------------- | ----------: | -------: | ------------------------------------------ |
-| `id`              |        text |      yes | Primary key, e.g. `link_...`               |
+| `id`              |       uuid |      yes | Primary key, default `uuidv7()`            |
 | `user_id`         |        text |      yes | Owner                                      |
 | `code`            |        text |      yes | Unique lowercase short code                |
 | `destination_url` |        text |      yes | Validated HTTP/HTTPS URL                   |
@@ -416,7 +426,7 @@ Table: `click_events`
 
 | Column            |        Type | Required | Notes                                           |
 | ----------------- | ----------: | -------: | ----------------------------------------------- |
-| `id`              |        text |      yes | Primary key, e.g. `clk_...`                     |
+| `id`              |       uuid |      yes | Primary key, default `uuidv7()`                |
 | `link_id`         |        text |      yes | References link                                 |
 | `clicked_at`      | timestamptz |      yes | Event timestamp                                 |
 | `referrer_domain` |        text |       no | Normalized domain only                          |
@@ -440,7 +450,7 @@ Table: `link_audit_logs`
 
 | Column           |        Type | Required | Notes                       |
 | ---------------- | ----------: | -------: | --------------------------- |
-| `id`             |        text |      yes | Primary key, e.g. `aud_...` |
+| `id`             |       uuid |      yes | Primary key, default `uuidv7()` |
 | `link_id`        |        text |      yes | Link being modified         |
 | `user_id`        |        text |       no | Actor if known              |
 | `action`         |        text |      yes | Audited action              |
@@ -490,6 +500,8 @@ CREATE INDEX click_events_link_id_clicked_at_idx ON click_events(link_id, clicke
 -- API-key indexes are managed by Better Auth's generated API Key plugin schema.
 CREATE INDEX link_audit_logs_link_id_idx ON link_audit_logs(link_id);
 ```
+
+Implement these constraints and indexes in Kysely migrations using the schema builder.
 
 ## 8.3 Optional Future Indexes
 
@@ -1900,7 +1912,7 @@ The following decisions should be finalized during implementation:
 | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Reverse proxy                            | Nginx preferred for automatic TLS; Nginx acceptable                                                         |
 | Process manager                          | systemd or Docker Compose                                                                                   |
-| Migration tool                           | Kysely-compatible migration workflow                                                                        |
+| Migration tool                           | kysely-ctl                                                                                                  |
 | Better Auth API Key plugin configuration | Header style, prefix format, user-owned keys, expiration policy, metadata usage, and rate-limit interaction |
 | Geolocation                              | Deferred unless local GeoIP is easy to add                                                                  |
 | Bot detection library                    | Basic user-agent parser or simple heuristic                                                                 |
