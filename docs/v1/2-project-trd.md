@@ -616,10 +616,10 @@ All API errors must follow this structure:
 
 ```json
 {
-	"error": {
-		"code": "alias_taken",
-		"message": "This alias is already in use."
-	}
+  "error": {
+    "code": "alias_taken",
+    "message": "This alias is already in use."
+  }
 }
 ```
 
@@ -689,10 +689,10 @@ Requires a valid Better Auth API key or authenticated dashboard session for dash
 
 ```json
 {
-	"url": "https://example.com/very/long/path",
-	"alias": "docs",
-	"title": "Example Docs",
-	"expires_at": "2026-12-31T23:59:59Z"
+  "url": "https://example.com/very/long/path",
+  "alias": "docs",
+  "title": "Example Docs",
+  "expires_at": "2026-12-31T23:59:59Z"
 }
 ```
 
@@ -718,14 +718,14 @@ Status: `201 Created`
 
 ```json
 {
-	"id": "link_123",
-	"short_url": "https://skrol.ink/docs",
-	"code": "docs",
-	"destination_url": "https://example.com/very/long/path",
-	"title": "Example Docs",
-	"status": "active",
-	"expires_at": "2026-12-31T23:59:59Z",
-	"created_at": "2026-05-12T10:00:00Z"
+  "id": "link_123",
+  "short_url": "https://skrol.ink/docs",
+  "code": "docs",
+  "destination_url": "https://example.com/very/long/path",
+  "title": "Example Docs",
+  "status": "active",
+  "expires_at": "2026-12-31T23:59:59Z",
+  "created_at": "2026-05-12T10:00:00Z"
 }
 ```
 
@@ -1172,10 +1172,10 @@ Status: `429 Too Many Requests`
 
 ```json
 {
-	"error": {
-		"code": "rate_limited",
-		"message": "Too many requests. Please try again later."
-	}
+  "error": {
+    "code": "rate_limited",
+    "message": "Too many requests. Please try again later."
+  }
 }
 ```
 
@@ -1466,13 +1466,13 @@ Recommended base fields:
 
 ```json
 {
-	"level": "info",
-	"time": "2026-05-12T10:00:00.000Z",
-	"request_id": "req_123",
-	"method": "POST",
-	"path": "/api/v1/links",
-	"status": 201,
-	"duration_ms": 42
+  "level": "info",
+  "time": "2026-05-12T10:00:00.000Z",
+  "request_id": "req_123",
+  "method": "POST",
+  "path": "/api/v1/links",
+  "status": 201,
+  "duration_ms": 42
 }
 ```
 

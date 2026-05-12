@@ -397,10 +397,10 @@ For MVP, one environment is sufficient.
 
 ```json
 {
-	"url": "https://example.com/very/long/path",
-	"alias": "docs",
-	"title": "Example Docs",
-	"expires_at": "2026-12-31T23:59:59Z"
+  "url": "https://example.com/very/long/path",
+  "alias": "docs",
+  "title": "Example Docs",
+  "expires_at": "2026-12-31T23:59:59Z"
 }
 ```
 
@@ -408,14 +408,14 @@ For MVP, one environment is sufficient.
 
 ```json
 {
-	"id": "link_123",
-	"short_url": "https://skrol.ink/docs",
-	"code": "docs",
-	"destination_url": "https://example.com/very/long/path",
-	"title": "Example Docs",
-	"status": "active",
-	"expires_at": "2026-12-31T23:59:59Z",
-	"created_at": "2026-05-12T10:00:00Z"
+  "id": "link_123",
+  "short_url": "https://skrol.ink/docs",
+  "code": "docs",
+  "destination_url": "https://example.com/very/long/path",
+  "title": "Example Docs",
+  "status": "active",
+  "expires_at": "2026-12-31T23:59:59Z",
+  "created_at": "2026-05-12T10:00:00Z"
 }
 ```
 
@@ -653,14 +653,14 @@ The MVP must not store long-term:
 
 ```json
 {
-	"link_id": "link_123",
-	"clicked_at": "2026-05-12T10:00:00Z",
-	"referrer_domain": "example.com",
-	"country": "ID",
-	"browser": "Chrome",
-	"os": "Android",
-	"device": "mobile",
-	"is_bot": false
+  "link_id": "link_123",
+  "clicked_at": "2026-05-12T10:00:00Z",
+  "referrer_domain": "example.com",
+  "country": "ID",
+  "browser": "Chrome",
+  "os": "Android",
+  "device": "mobile",
+  "is_bot": false
 }
 ```
 
@@ -829,10 +829,10 @@ Example:
 
 ```json
 {
-	"error": {
-		"code": "alias_taken",
-		"message": "This alias is already in use."
-	}
+  "error": {
+    "code": "alias_taken",
+    "message": "This alias is already in use."
+  }
 }
 ```
 

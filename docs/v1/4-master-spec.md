@@ -291,10 +291,10 @@ All API errors must use:
 
 ```json
 {
-	"error": {
-		"code": "alias_taken",
-		"message": "This alias is already in use."
-	}
+  "error": {
+    "code": "alias_taken",
+    "message": "This alias is already in use."
+  }
 }
 ```
 
