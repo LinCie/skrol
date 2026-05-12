@@ -168,3 +168,19 @@ If documents appear to conflict:
 4. Use the Master Spec for implementation order, release gates, and consolidated execution decisions.
 
 Do not expand MVP scope unless the PRD and Master Spec are both updated.
+
+## Dependency Changes
+
+Agents MUST NOT manually edit dependency versions in `package.json` or lockfiles.
+
+All dependency changes MUST use the project’s package manager:
+
+- `bun.lock` → `bun add/remove/update`
+
+Do not guess, hallucinate, or infer package versions from memory.
+
+If a specific version is needed, verify it first with the package manager or registry, then install it through the package manager.
+
+Lockfiles MUST only be changed by the package manager, never by manual editing.
+
+Manual `package.json` edits are allowed only for non-dependency fields such as `scripts`, `name`, `type`, `exports`, or `workspaces`.
