@@ -62,6 +62,39 @@ Consult the Master Spec when:
 
 Use this as the main execution guide.
 
+## Navigation Tip: Inspect Document Headings Quickly
+
+Use heading extraction to inspect document structure before reading full files.
+
+```sh
+# All headings across docs/
+grep -RInE '^#{2,3} ' docs/
+
+# Only ## headings
+grep -RInE '^## ' docs/
+
+# Only ### headings
+grep -RInE '^### ' docs/
+```
+
+You can also grep individual documents directly.
+
+```sh
+# PRD
+grep -nE '^#{2,3} ' docs/v1/v1-project-prd.md
+
+# TRD
+grep -nE '^#{2,3} ' docs/v1/v1-project-trd.md
+
+# ERD
+grep -nE '^#{2,3} ' docs/v1/v1-project-erd.md
+
+# Master Spec
+grep -nE '^#{2,3} ' docs/v1/v1-master-spec.md
+```
+
+Use this before making scope, architecture, schema, API, validation, or implementation decisions.
+
 ## Conflict Resolution
 
 If documents appear to conflict:
