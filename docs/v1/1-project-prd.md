@@ -368,7 +368,7 @@ Failure cases:
 
 ### Suggested API Key Format
 
-`sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+`sk_live_XXXXXXX`
 
 Optional future distinction:
 
@@ -791,7 +791,7 @@ API requests must use bearer token authentication.
 Example:
 
 ```http
-Authorization: Bearer sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Authorization: Bearer sk_live_XXXXXXX
 ```
 
 Missing, invalid, or revoked tokens must return `401 Unauthorized`.

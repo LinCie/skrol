@@ -278,7 +278,7 @@ Required behavior:
 API requests use bearer token authentication:
 
 ```http
-Authorization: Bearer sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Authorization: Bearer sk_live_XXXXXXX
 ```
 
 Missing, invalid, expired, disabled, or revoked keys return `401 Unauthorized`.

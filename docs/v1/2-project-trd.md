@@ -542,7 +542,7 @@ API requests use Better Auth API Key plugin authentication.
 Example:
 
 ```http
-Authorization: Bearer sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Authorization: Bearer sk_live_XXXXXXX
 ```
 
 Authentication flow:

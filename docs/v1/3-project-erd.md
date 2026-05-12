@@ -673,7 +673,7 @@ rate limiting = enabled only if compatible with skrol's broader rate-limit strat
 The PRD suggested a format like:
 
 ```text
-sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+sk_live_XXXXXXX
 ```
 
 If the Better Auth API Key plugin supports a custom prefix in the desired form, use the plugin configuration rather than a custom skrol table.
