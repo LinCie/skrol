@@ -81,19 +81,82 @@ You can also grep individual documents directly.
 
 ```sh
 # PRD
-grep -nE '^#{2,3} ' docs/v1/v1-project-prd.md
+grep -nE '^#{2,3} ' docs/v1/1-project-prd.md
 
 # TRD
-grep -nE '^#{2,3} ' docs/v1/v1-project-trd.md
+grep -nE '^#{2,3} ' docs/v1/2-project-trd.md
 
 # ERD
-grep -nE '^#{2,3} ' docs/v1/v1-project-erd.md
+grep -nE '^#{2,3} ' docs/v1/3-project-erd.md
 
 # Master Spec
-grep -nE '^#{2,3} ' docs/v1/v1-master-spec.md
+grep -nE '^#{2,3} ' docs/v1/4-master-spec.md
 ```
 
 Use this before making scope, architecture, schema, API, validation, or implementation decisions.
+
+## Project-Specific Workspace Reference
+
+Current monorepo layout and tooling assumptions for this repository:
+
+- Package manager: `bun` (`packageManager: bun@1.3.13`)
+- Task runner: `turbo`
+- Workspaces: `apps/*`, `packages/*`
+- Node engine: `>=18`
+
+Current workspace directories:
+
+- `apps/` (currently reserved; contains `.gitkeep` only)
+- `packages/eslint-config/` (`@repo/eslint-config`)
+- `packages/typescript-config/` (`@repo/typescript-config`)
+
+## Project-Specific Commands
+
+Run commands from repository root unless noted otherwise.
+
+### Core Monorepo Commands
+
+```sh
+# Start all workspace dev tasks
+bun run dev
+
+# Build all workspaces via turbo
+bun run build
+
+# Lint all workspaces via turbo
+bun run lint
+
+# Type-check all workspaces via turbo
+bun run check-types
+
+# Format TS/TSX/MD files
+bun run format
+```
+
+### Targeted Turbo Commands
+
+```sh
+# Run a task for one workspace/package
+bunx turbo run <task> --filter=<workspace>
+
+# Example: lint only shared ESLint config package
+bunx turbo run lint --filter=@repo/eslint-config
+
+# Example: type-check only shared TypeScript config package
+bunx turbo run check-types --filter=@repo/typescript-config
+```
+
+### Dependency / Environment Commands
+
+```sh
+# Install dependencies from lockfile/package manifests
+bun install
+
+# Show workspace dependency tree
+bun pm ls
+```
+
+Use these commands as defaults when validating implementation changes in this repo.
 
 ## Conflict Resolution
 
