@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: skrol
+      POSTGRES_USER: 0a604061d688a1bd985b6ce7
+      POSTGRES_PASSWORD: ac278bc403f410e6ae6dabb4c4f69788c484c027359f3867
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
