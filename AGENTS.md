@@ -107,6 +107,7 @@ Current monorepo layout and tooling assumptions for this repository:
 Current workspace directories:
 
 - `apps/` (currently reserved; contains `.gitkeep` only)
+- `apps/backend/` (`backend`) — Elysia API server with PostgreSQL (Kysely), Redis, Pino logging, Bun runtime
 - `packages/eslint-config/` (`@repo/eslint-config`)
 - `packages/typescript-config/` (`@repo/typescript-config`)
 
@@ -154,6 +155,45 @@ bun install
 
 # Show workspace dependency tree
 bun pm ls
+```
+
+### Backend App Commands
+
+Run from `apps/backend/` unless noted otherwise.
+
+```sh
+# Start dev server (with file watcher)
+bun run dev
+
+# Build for production
+bun run build
+
+# Run tests
+bun run test
+
+# Database: run all migrations
+bun run db:migrate
+
+# Database: create a new migration
+bun run db:migrate:make
+
+# Database: list applied migrations
+bun run db:migrate:list
+
+# Database: rollback last migration
+bun run db:migrate:down
+
+# Database: rollback all migrations
+bun run db:migrate:rollback
+
+# Database: generate type-safe query types
+bun run db:typegen
+
+# Database: run migrations then generate types
+bun run db:sync
+
+# Database: verify generated types match schema
+bun run db:typecheck
 ```
 
 Use these commands as defaults when validating implementation changes in this repo.
