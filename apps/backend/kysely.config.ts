@@ -1,13 +1,14 @@
 import { defineConfig } from "kysely-ctl";
-import { PostgresDialect } from "kysely";
-import { Pool } from "pg";
+import {
+  getDatabase,
+  initializeDatabase,
+} from "@/shared/infrastructure/database";
+import config from "@/shared/config";
+
+initializeDatabase(config.databaseUrl);
 
 export default defineConfig({
-  dialect: new PostgresDialect({
-    pool: new Pool({
-      connectionString: process.env.DATABASE_URL,
-    }),
-  }),
+  kysely: getDatabase(),
   migrations: {
     migrationFolder: "migrations",
   },
