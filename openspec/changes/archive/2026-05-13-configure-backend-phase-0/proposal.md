@@ -14,11 +14,13 @@ Phase 0 requires a working backend foundation before any redirect, auth, or API 
 ## Capabilities
 
 ### New Capabilities
+
 - `backend-foundation`: Backend service bootstrap, configuration, core infrastructure clients, and baseline HTTP runtime.
 - `backend-health-checks`: Health/readiness behavior for runtime, PostgreSQL connectivity, and Redis connectivity.
 - `backend-migration-baseline`: Initial migration workflow and schema bootstrap for skrol-owned database tables in Phase 0 scope.
 
 ### Modified Capabilities
+
 - None.
 
 ## Impact

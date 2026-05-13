@@ -17,5 +17,13 @@
       "cache": false,
       "persistent": true
     }
-  }
+  },
+  "globalEnv": [
+    "NODE_ENV",
+    "PORT",
+    "LOG_LEVEL",
+    "DATABASE_URL",
+    "REDIS_URL",
+    "SENTRY_DSN"
+  ]
 }

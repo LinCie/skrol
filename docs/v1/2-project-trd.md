@@ -400,7 +400,7 @@ Table: `links`
 
 | Column            |        Type | Required | Notes                                      |
 | ----------------- | ----------: | -------: | ------------------------------------------ |
-| `id`              |       uuid |      yes | Primary key, default `uuidv7()`            |
+| `id`              |        uuid |      yes | Primary key, default `uuidv7()`            |
 | `user_id`         |        text |      yes | Owner                                      |
 | `code`            |        text |      yes | Unique lowercase short code                |
 | `destination_url` |        text |      yes | Validated HTTP/HTTPS URL                   |
@@ -426,7 +426,7 @@ Table: `click_events`
 
 | Column            |        Type | Required | Notes                                           |
 | ----------------- | ----------: | -------: | ----------------------------------------------- |
-| `id`              |       uuid |      yes | Primary key, default `uuidv7()`                |
+| `id`              |        uuid |      yes | Primary key, default `uuidv7()`                 |
 | `link_id`         |        text |      yes | References link                                 |
 | `clicked_at`      | timestamptz |      yes | Event timestamp                                 |
 | `referrer_domain` |        text |       no | Normalized domain only                          |
@@ -448,15 +448,15 @@ Forbidden long-term fields:
 
 Table: `link_audit_logs`
 
-| Column           |        Type | Required | Notes                       |
-| ---------------- | ----------: | -------: | --------------------------- |
-| `id`             |       uuid |      yes | Primary key, default `uuidv7()` |
-| `link_id`        |        text |      yes | Link being modified         |
-| `user_id`        |        text |       no | Actor if known              |
-| `action`         |        text |      yes | Audited action              |
-| `previous_value` |       jsonb |       no | Previous value snapshot     |
-| `new_value`      |       jsonb |       no | New value snapshot          |
-| `created_at`     | timestamptz |      yes | Audit timestamp             |
+| Column           |        Type | Required | Notes                           |
+| ---------------- | ----------: | -------: | ------------------------------- |
+| `id`             |        uuid |      yes | Primary key, default `uuidv7()` |
+| `link_id`        |        text |      yes | Link being modified             |
+| `user_id`        |        text |       no | Actor if known                  |
+| `action`         |        text |      yes | Audited action                  |
+| `previous_value` |       jsonb |       no | Previous value snapshot         |
+| `new_value`      |       jsonb |       no | New value snapshot              |
+| `created_at`     | timestamptz |      yes | Audit timestamp                 |
 
 Required audited actions:
 
