@@ -4,7 +4,7 @@
  */
 
 import Redis from "ioredis";
-import { logger } from "../../presentation/logging/logger";
+import { logger } from "@/shared/presentation/logging/logger";
 
 export type RedisClient = Redis;
 

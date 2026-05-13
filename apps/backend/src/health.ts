@@ -4,8 +4,8 @@
  */
 
 import postgres from "postgres";
-import { logger } from "./shared/presentation/logging/logger";
-import { getRedis } from "./shared/infrastructure/caching/redis";
+import { getRedis } from "@/shared/infrastructure/caching/redis";
+import { logger } from "@/shared/presentation/logging/logger";
 
 export interface HealthStatus {
   status: "healthy" | "unhealthy";

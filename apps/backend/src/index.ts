@@ -4,17 +4,17 @@
  */
 
 import { Elysia } from "elysia";
-import config from "./shared/config";
-import { logger } from "./shared/presentation/logging/logger";
+import config from "@/shared/config";
+import { logger } from "@/shared/presentation/logging/logger";
 import {
   initializeDatabase,
   closeDatabase,
-} from "./shared/infrastructure/persistance/db";
+} from "@/shared/infrastructure/database";
 import {
   initializeRedis,
   closeRedis,
-} from "./shared/infrastructure/caching/redis";
-import { getHealthStatus } from "./health";
+} from "@/shared/infrastructure/caching/redis";
+import { getHealthStatus } from "@/health";
 
 async function bootstrap() {
   try {
