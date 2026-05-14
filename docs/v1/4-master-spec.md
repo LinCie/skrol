@@ -173,7 +173,6 @@ Purpose: central short-link entity.
 
 Columns:
 
-- `id text primary key`
 - `id uuid primary key default uuidv7()`
 - `user_id text not null`
 - `code text not null unique`
