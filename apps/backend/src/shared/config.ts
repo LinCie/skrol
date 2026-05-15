@@ -61,16 +61,18 @@ function parseFrontendOrigins(value: string): string[] {
 
 export function loadConfig(): Config {
   try {
+    const env = getEnv("NODE_ENV", "development");
+    const defaultFrontendOrigins =
+      env === "production" ? "https://skrol.ink" : "http://localhost:5173,https://skrol.ink";
     const config: Config = {
-      env: getEnv("NODE_ENV", "development"),
+      env,
       port: parseInt(getEnv("PORT", "3000"), 10),
       databaseUrl: getEnv("DATABASE_URL"),
       redisUrl: getEnv("REDIS_URL"),
       betterAuthUrl: getEnv("BETTER_AUTH_URL"),
       betterAuthSecret: getEnv("BETTER_AUTH_SECRET"),
       frontendOrigins: parseFrontendOrigins(
-        getEnvOptional("FRONTEND_ORIGINS", "http://localhost:5173,https://skrol.ink") ??
-          "",
+        getEnvOptional("FRONTEND_ORIGINS", defaultFrontendOrigins) ?? "",
       ),
       sentryDsn: getEnvOptional("SENTRY_DSN"),
     };

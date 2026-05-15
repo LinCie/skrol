@@ -77,6 +77,46 @@ describe("auth config env", () => {
     }
   });
 
+  it("uses a production-safe default frontend origin list", async () => {
+    const snapshot = snapshotEnv();
+
+    try {
+      Object.assign(process.env, BASE_ENV, {
+        NODE_ENV: "production",
+      });
+      delete process.env.FRONTEND_ORIGINS;
+
+      const { loadConfig } = await importConfig("production-default-origins");
+      const config = loadConfig();
+
+      expect(config.frontendOrigins).toEqual(["https://skrol.ink"]);
+      expect(config.frontendOrigins).not.toContain("http://localhost:5173");
+    } finally {
+      restoreEnv(snapshot);
+    }
+  });
+
+  it("keeps localhost in the non-production default frontend origin list", async () => {
+    const snapshot = snapshotEnv();
+
+    try {
+      Object.assign(process.env, BASE_ENV, {
+        NODE_ENV: "development",
+      });
+      delete process.env.FRONTEND_ORIGINS;
+
+      const { loadConfig } = await importConfig("development-default-origins");
+      const config = loadConfig();
+
+      expect(config.frontendOrigins).toEqual([
+        "http://localhost:5173",
+        "https://skrol.ink",
+      ]);
+    } finally {
+      restoreEnv(snapshot);
+    }
+  });
+
   it("rejects wildcard frontend origins for credentialed CORS", async () => {
     const snapshot = snapshotEnv();
     const originalExit = process.exit;
