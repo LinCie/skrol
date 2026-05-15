@@ -150,6 +150,21 @@ bun run migrate:skip
 2. Implement `up()` and `down()` functions using Kysely schema builder
 3. Run `bun run migrate` to apply
 
+### Better Auth Schema Workflow
+
+Better Auth keeps its own auth/session schema separate from skrol-owned tables.
+
+Use the backend scripts to inspect or apply that schema against the configured
+`BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, and `DATABASE_URL` values:
+
+```bash
+bun run auth:schema:generate
+bun run auth:schema:migrate
+```
+
+If you want the generated SQL saved to a file, pass `--output <path>` to the
+generate script.
+
 Example migration structure:
 
 ```typescript

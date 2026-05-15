@@ -66,7 +66,7 @@
 - Modify: `apps/backend/src/shared/config.ts`
 - Create: `apps/backend/src/__tests__/phase2/config-auth-env.test.ts`
 
-- [ ] **Step 1: Add failing env tests using Better Auth naming**
+- [x] **Step 1: Add failing env tests using Better Auth naming**
 
 ```ts
 import { describe, expect, it } from "bun:test";
@@ -90,12 +90,12 @@ describe("auth config env", () => {
 });
 ```
 
-- [ ] **Step 2: Run test and confirm fail first**
+- [x] **Step 2: Run test and confirm fail first**
 
 Run: `bun test src/__tests__/phase2/config-auth-env.test.ts`  
 Expected: FAIL before config updates.
 
-- [ ] **Step 3: Add dependencies and env config fields**
+- [x] **Step 3: Add dependencies and env config fields**
 
 Plan requirements:
 
@@ -103,7 +103,7 @@ Plan requirements:
 - config exposes `betterAuthSecret` and `betterAuthUrl`
 - remove `BETTER_AUTH_BASE_URL` usage
 
-- [ ] **Step 4: Re-run test**
+- [x] **Step 4: Re-run test**
 
 Run: `bun test src/__tests__/phase2/config-auth-env.test.ts`  
 Expected: PASS.
@@ -118,11 +118,11 @@ Expected: PASS.
 - Create/Modify: auth integration files and migration/schema tooling files as required by current repo conventions
 - Documentation touchpoint: ensure usage instructions are explicit in code comments or local docs if needed
 
-- [ ] **Step 1: Add failing integration check (if absent)**
+- [x] **Step 1: Add failing integration check (if absent)**
 
 Add a narrow test or runtime check that fails if Better Auth schema tables are missing/unreachable.
 
-- [ ] **Step 2: Configure Better Auth for PostgreSQL + base path**
+- [x] **Step 2: Configure Better Auth for PostgreSQL + base path**
 
 Requirements:
 
@@ -138,14 +138,14 @@ emailAndPassword: {
 }
 ```
 
-- [ ] **Step 3: Generate/apply Better Auth schema**
+- [x] **Step 3: Generate/apply Better Auth schema**
 
 Required outcomes:
 
 - Better Auth-managed tables exist
 - no speculative hard-coded table names introduced in skrol-owned migrations
 
-- [ ] **Step 4: Verify schema ownership boundary**
+- [x] **Step 4: Verify schema ownership boundary**
 
 Confirm:
 

@@ -8,6 +8,8 @@ interface Config {
   port: number;
   databaseUrl: string;
   redisUrl: string;
+  betterAuthUrl: string;
+  betterAuthSecret: string;
   sentryDsn?: string;
 }
 
@@ -33,6 +35,8 @@ export function loadConfig(): Config {
       port: parseInt(getEnv("PORT", "3000"), 10),
       databaseUrl: getEnv("DATABASE_URL"),
       redisUrl: getEnv("REDIS_URL"),
+      betterAuthUrl: getEnv("BETTER_AUTH_URL"),
+      betterAuthSecret: getEnv("BETTER_AUTH_SECRET"),
       sentryDsn: getEnvOptional("SENTRY_DSN"),
     };
 

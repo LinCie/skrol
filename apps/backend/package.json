@@ -9,6 +9,8 @@
 		"check-types": "tsc --noEmit",
 		"test": "bun test",
 		"test:phase1": "bun test src/__tests__/phase1",
+		"auth:schema:generate": "bun run src/modules/auth/infrastructure/better-auth-schema.ts generate",
+		"auth:schema:migrate": "bun run src/modules/auth/infrastructure/better-auth-schema.ts migrate",
 		"db:migrate": "kysely migrate latest",
 		"db:migrate:make": "kysely migrate:make",
 		"db:migrate:list": "kysely migrate list",
@@ -19,6 +21,7 @@
 		"db:typecheck": "kysely-codegen --out-file ./src/shared/infrastructure/database/types.ts --verify --camel-case"
 	},
 	"dependencies": {
+		"better-auth": "^1.6.11",
 		"elysia": "latest",
 		"ioredis": "^5.4.0",
 		"kysely": "^0.29.0",
