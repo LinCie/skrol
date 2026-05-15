@@ -1,5 +1,7 @@
 import { describe, expect, it } from "bun:test";
+import { Elysia } from "elysia";
 import { createApp } from "@/index";
+import { registerCredentialedCors } from "@/shared/presentation/cors";
 
 const ALLOWED_ORIGIN = "http://localhost:5173";
 const DISALLOWED_ORIGIN = "https://evil.example";
@@ -80,5 +82,55 @@ describe("credentialed CORS origin policy", () => {
 		expect(response.headers.get("Access-Control-Allow-Origin")).not.toBe("*");
 		expect(response.headers.get("Access-Control-Allow-Origin")).toBeNull();
 		expect(response.headers.get("Access-Control-Allow-Credentials")).toBeNull();
+	});
+
+	it("adds credentialed CORS headers to parser error responses for allowed origins", async () => {
+		const response = await createTestApp().handle(
+			new Request("http://localhost/api/v1/links", {
+				method: "POST",
+				headers: {
+					Origin: ALLOWED_ORIGIN,
+					"Content-Type": "application/json",
+				},
+				body: "{",
+			}),
+		);
+
+		expect(response.status).toBe(400);
+		expect(response.headers.get("Access-Control-Allow-Origin")).toBe(
+			ALLOWED_ORIGIN,
+		);
+		expect(response.headers.get("Access-Control-Allow-Credentials")).toBe(
+			"true",
+		);
+	});
+
+	it("merges Origin into existing Vary response headers", async () => {
+		const app = new Elysia();
+		registerCredentialedCors(app, { allowedOrigins: [ALLOWED_ORIGIN] });
+		app.get(
+			"/vary",
+			() =>
+				new Response("ok", {
+					headers: {
+						Vary: "Accept-Encoding",
+					},
+				}),
+		);
+
+		const response = await app.handle(
+			new Request("http://localhost/vary", {
+				headers: {
+					Origin: ALLOWED_ORIGIN,
+				},
+			}),
+		);
+		const vary = response.headers.get("Vary");
+
+		expect(vary).not.toBeNull();
+		expect(vary?.split(",").map((value) => value.trim()).sort()).toEqual([
+			"Accept-Encoding",
+			"Origin",
+		]);
 	});
 });

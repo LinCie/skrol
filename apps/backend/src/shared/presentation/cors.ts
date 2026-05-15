@@ -22,13 +22,27 @@ function getAllowedOrigin(request: Request, allowedOrigins: Set<string>) {
 function applyCorsHeaders(headers: Headers, origin: string) {
 	headers.set("Access-Control-Allow-Origin", origin);
 	headers.set("Access-Control-Allow-Credentials", "true");
-	headers.append("Vary", "Origin");
+	headers.set("Vary", mergeVaryOrigin(headers.get("Vary")));
 }
 
 function applyCorsHeaderMap(headers: HeaderMap, origin: string) {
 	headers["Access-Control-Allow-Origin"] = origin;
 	headers["Access-Control-Allow-Credentials"] = "true";
-	headers.Vary = "Origin";
+	headers.Vary = mergeVaryOrigin(headers.Vary);
+}
+
+function mergeVaryOrigin(value: string | number | string[] | null | undefined) {
+	const existing = Array.isArray(value) ? value.join(",") : value?.toString();
+	const fields = (existing ?? "")
+		.split(",")
+		.map((field) => field.trim())
+		.filter(Boolean);
+
+	if (!fields.some((field) => field.toLowerCase() === "origin")) {
+		fields.push("Origin");
+	}
+
+	return fields.join(", ");
 }
 
 export function registerCredentialedCors(
@@ -61,6 +75,31 @@ export function registerCredentialedCors(
 			}
 		})
 		.onAfterHandle(({ request, set }) => {
+			const origin = getAllowedOrigin(request, allowedOrigins);
+
+			if (!origin) {
+				return;
+			}
+
+			applyCorsHeaderMap(set.headers, origin);
+		})
+		.mapResponse(({ request, responseValue }) => {
+			const origin = getAllowedOrigin(request, allowedOrigins);
+
+			if (!origin || !(responseValue instanceof Response)) {
+				return;
+			}
+
+			const headers = new Headers(responseValue.headers);
+			applyCorsHeaders(headers, origin);
+
+			return new Response(responseValue.body, {
+				status: responseValue.status,
+				statusText: responseValue.statusText,
+				headers,
+			});
+		})
+		.onError(({ request, set }) => {
 			const origin = getAllowedOrigin(request, allowedOrigins);
 
 			if (!origin) {
