@@ -482,7 +482,7 @@ Expected: PASS.
 - Create: `apps/frontend/src/__tests__/phase2/links-pages.test.tsx`
 - Modify: `apps/frontend/src/routeTree.gen.ts`
 
-- [ ] **Step 1: Add failing links page tests for empty/error/not-found states**
+- [x] **Step 1: Add failing links page tests for empty/error/not-found states**
 
 Must cover:
 
@@ -491,12 +491,12 @@ Must cover:
 - create validation error mapping
 - detail not-found state
 
-- [ ] **Step 2: Run tests and confirm fail first**
+- [x] **Step 2: Run tests and confirm fail first**
 
 Run: `bun run test -- --run src/__tests__/phase2/links-pages.test.tsx`  
 Expected: FAIL.
 
-- [ ] **Step 3: Implement API client with credentials included**
+- [x] **Step 3: Implement API client with credentials included**
 
 Requirement:
 
@@ -506,11 +506,11 @@ credentials: "include";
 
 Apply to product API fetch calls.
 
-- [ ] **Step 4: Implement list/create/detail pages against `/api/v1/links*`**
+- [x] **Step 4: Implement list/create/detail pages against `/api/v1/links*`**
 
 Expected backend dependencies already complete from Task 6.
 
-- [ ] **Step 5: Re-run tests**
+- [x] **Step 5: Re-run tests**
 
 Run: `bun run test -- --run src/__tests__/phase2/links-pages.test.tsx`  
 Expected: PASS.
