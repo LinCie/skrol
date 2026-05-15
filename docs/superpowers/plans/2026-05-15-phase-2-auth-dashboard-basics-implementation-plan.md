@@ -551,7 +551,7 @@ Documented phase decision:
 - Modify: any test files needed for missing regressions
 - Modify: design doc only if implementation revealed required clarification
 
-- [ ] **Step 1: Add missing high-signal regression tests**
+- [x] **Step 1: Add missing high-signal regression tests**
 
 Checklist:
 
@@ -560,12 +560,12 @@ Checklist:
 - unauthenticated list returns `401`
 - signup + lazy profile backfill behaviors remain correct
 
-- [ ] **Step 2: Run backend phase2 test suite**
+- [x] **Step 2: Run backend phase2 test suite**
 
 Run: `bun run test:phase2`  
 Expected: PASS.
 
-- [ ] **Step 3: Run app-level tests, lint, and typecheck**
+- [x] **Step 3: Run app-level tests, lint, and typecheck**
 
 Run: `bunx turbo run test --filter=backend --filter=skrol-frontend`  
 Expected: PASS.
@@ -576,7 +576,7 @@ Expected: PASS.
 Run: `bunx turbo run check-types --filter=backend --filter=skrol-frontend`  
 Expected: PASS.
 
-- [ ] **Step 4: Manual smoke verification**
+- [x] **Step 4: Manual smoke verification**
 
 Run: `bun run dev`  
 Expected outcomes:
