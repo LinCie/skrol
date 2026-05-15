@@ -30,7 +30,7 @@ describe("Phase 2 links API routes", () => {
 
 	it("creates a link from documented body fields for the session principal", async () => {
 		const fakes = createLinksApiTestApp({ principalUserId: ownerA });
-		const expiresAt = "2026-12-31T23:59:59.000Z";
+		const expiresAt = "2999-12-31T23:59:59.000Z";
 
 		const response = await fakes.app.handle(
 			new Request("http://localhost/api/v1/links", {
@@ -57,12 +57,48 @@ describe("Phase 2 links API routes", () => {
 				expiresAt: new Date(expiresAt),
 			},
 		]);
-		expect(await response.json()).toMatchObject({
+		const responseBody = await response.json();
+		expect(responseBody).toEqual({
 			id: ownerAId,
-			userId: ownerA,
+			short_url: "http://localhost/docs",
 			code: "docs",
-			destinationUrl: "https://example.com/docs",
+			destination_url: "https://example.com/docs",
+			title: "Docs",
+			status: "active",
+			expires_at: expiresAt,
+			created_at: "2026-05-15T00:00:00.000Z",
 		});
+		expect(responseBody.userId).toBeUndefined();
+		expect(responseBody.createdViaApiKeyId).toBeUndefined();
+		expect(responseBody.deletedAt).toBeUndefined();
+		expect(responseBody.updatedAt).toBeUndefined();
+	});
+
+	it("rejects invalid or non-future expires_at before creating a link", async () => {
+		const fakes = createLinksApiTestApp({ principalUserId: ownerA });
+
+		for (const expiresAt of ["not-a-date", "2000-01-01T00:00:00.000Z"]) {
+			const response = await fakes.app.handle(
+				new Request("http://localhost/api/v1/links", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						url: "https://example.com/docs",
+						expires_at: expiresAt,
+					}),
+				}),
+			);
+
+			expect(response.status).toBe(400);
+			expect(await response.json()).toEqual({
+				error: {
+					code: "validation_error",
+					message: "Invalid link request.",
+				},
+			});
+		}
+
+		expect(fakes.createInputs).toEqual([]);
 	});
 
 	it("lists only links owned by the session principal", async () => {
@@ -76,12 +112,17 @@ describe("Phase 2 links API routes", () => {
 		expect(fakes.listInputs).toEqual([
 			{ ownerUserId: ownerA, limit: 100, cursor: "abc" },
 		]);
-		expect(await response.json()).toMatchObject({
+		expect(await response.json()).toEqual({
 			items: [
 				{
 					id: ownerAId,
-					userId: ownerA,
+					short_url: "http://localhost/owner-a",
 					code: "owner-a",
+					destination_url: "https://example.com/owner-a",
+					title: "owner-a",
+					status: "active",
+					expires_at: null,
+					created_at: "2026-05-15T00:00:00.000Z",
 				},
 			],
 			nextCursor: null,
@@ -104,6 +145,26 @@ describe("Phase 2 links API routes", () => {
 				code: "not_found",
 				message: "Link was not found.",
 			},
+		});
+	});
+
+	it("returns owned link detail as public DTO", async () => {
+		const fakes = createLinksApiTestApp({ principalUserId: ownerA });
+
+		const response = await fakes.app.handle(
+			new Request(`http://localhost/api/v1/links/${ownerAId}`),
+		);
+
+		expect(response.status).toBe(200);
+		expect(await response.json()).toEqual({
+			id: ownerAId,
+			short_url: "http://localhost/owner-a",
+			code: "owner-a",
+			destination_url: "https://example.com/owner-a",
+			title: "owner-a",
+			status: "active",
+			expires_at: null,
+			created_at: "2026-05-15T00:00:00.000Z",
 		});
 	});
 });
@@ -150,6 +211,7 @@ function createLinksApiTestApp(input: { principalUserId: string | null }) {
 							code: createInput.alias?.toLowerCase() ?? "generated",
 							destinationUrl: createInput.destinationUrl,
 							title: createInput.title ?? null,
+							expiresAt: createInput.expiresAt,
 						}),
 					};
 				},
@@ -195,6 +257,7 @@ function linkFixture(input: {
 	code: string;
 	destinationUrl?: string;
 	title?: string | null;
+	expiresAt?: Date | null;
 }): Link {
 	return Link.create({
 		id: input.id,
@@ -204,7 +267,7 @@ function linkFixture(input: {
 		destinationUrl: input.destinationUrl ?? `https://example.com/${input.code}`,
 		title: input.title ?? input.code,
 		status: "active",
-		expiresAt: null,
+		expiresAt: input.expiresAt ?? null,
 		deletedAt: null,
 		createdAt: new Date("2026-05-15T00:00:00.000Z"),
 		updatedAt: new Date("2026-05-15T00:00:00.000Z"),

@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import type { AuthSessionService } from "@/modules/auth/application/auth-session.service";
 import { requireSession } from "@/modules/auth/presentation/session-guard";
+import type { Link } from "@/modules/links/domain/link.entity";
 import type { LinksModule } from "@/modules/links/links.module";
 import { apiError } from "@/modules/shared/presentation/api-error";
 
@@ -15,7 +16,7 @@ export interface LinksApiRoutesDependencies {
 export function linksApiRoutes(deps: LinksApiRoutesDependencies) {
 	return new Elysia({ name: "links.api-routes" })
 		.use(requireSession(deps.authSessionService))
-		.post("/api/v1/links", async ({ authPrincipal, body }) => {
+		.post("/api/v1/links", async ({ authPrincipal, body, request }) => {
 			if (!authPrincipal) {
 				return apiError(401, "unauthorized", "Authentication is required.");
 			}
@@ -38,7 +39,7 @@ export function linksApiRoutes(deps: LinksApiRoutesDependencies) {
 				return createLinkError(result.code);
 			}
 
-			return Response.json(result.link, { status: 201 });
+			return Response.json(toLinkDto(result.link, request), { status: 201 });
 		})
 		.get("/api/v1/links", async ({ authPrincipal, request }) => {
 			if (!authPrincipal) {
@@ -52,9 +53,12 @@ export function linksApiRoutes(deps: LinksApiRoutesDependencies) {
 				cursor: url.searchParams.get("cursor") || undefined,
 			});
 
-			return Response.json(result);
+			return Response.json({
+				items: result.items.map((link) => toLinkDto(link, request)),
+				nextCursor: result.nextCursor,
+			});
 		})
-		.get("/api/v1/links/:id", async ({ authPrincipal, params }) => {
+		.get("/api/v1/links/:id", async ({ authPrincipal, params, request }) => {
 			if (!authPrincipal) {
 				return apiError(401, "unauthorized", "Authentication is required.");
 			}
@@ -68,8 +72,21 @@ export function linksApiRoutes(deps: LinksApiRoutesDependencies) {
 				return apiError(404, "not_found", "Link was not found.");
 			}
 
-			return Response.json(link);
+			return Response.json(toLinkDto(link, request));
 		});
+}
+
+function toLinkDto(link: Link, request: Request) {
+	return {
+		id: link.id,
+		short_url: new URL(`/${link.code}`, request.url).toString(),
+		code: link.code,
+		destination_url: link.destinationUrl,
+		title: link.title,
+		status: link.status,
+		expires_at: link.expiresAt?.toISOString() ?? null,
+		created_at: link.createdAt.toISOString(),
+	};
 }
 
 function parseLimit(value: string | null): number {
@@ -98,13 +115,34 @@ function parseCreateLinkBody(body: unknown):
 		return null;
 	}
 
+	const expiresAt = parseExpiresAt(record.expires_at);
+	if (expiresAt === false) {
+		return null;
+	}
+
 	return {
 		destinationUrl: record.url,
 		alias: typeof record.alias === "string" ? record.alias : undefined,
 		title: typeof record.title === "string" ? record.title : undefined,
-		expiresAt:
-			typeof record.expires_at === "string" ? new Date(record.expires_at) : null,
+		expiresAt,
 	};
+}
+
+function parseExpiresAt(value: unknown): Date | null | false {
+	if (value === undefined || value === null) {
+		return null;
+	}
+
+	if (typeof value !== "string") {
+		return false;
+	}
+
+	const expiresAt = new Date(value);
+	if (!Number.isFinite(expiresAt.getTime()) || expiresAt <= new Date()) {
+		return false;
+	}
+
+	return expiresAt;
 }
 
 function createLinkError(code: string): Response {
