@@ -18,21 +18,50 @@ import { getHealthStatus, type HealthStatus } from "@/health";
 import { RedirectModule } from "@/modules/redirect/redirect.module";
 import type { ResolveRedirectUseCase } from "@/modules/redirect/application/resolve-redirect.use-case";
 import { createDefaultBetterAuthInstance } from "@/modules/auth/infrastructure/better-auth.server";
+import { BetterAuthSessionService } from "@/modules/auth/infrastructure/auth-session.service.impl";
+import type { AuthSessionService } from "@/modules/auth/application/auth-session.service";
 import {
   mountBetterAuthRoutes,
   type BetterAuthHandler,
 } from "@/modules/auth/presentation/routes/mount-better-auth";
+import { LinksModule } from "@/modules/links/links.module";
+import { linksApiRoutes } from "@/modules/links/presentation/routes/links-api.routes";
+import { UserProfilesRepository } from "@/modules/users/infrastructure/user-profiles.repository";
 
 export interface CreateAppDependencies {
   getHealthStatus?: (databaseUrl: string) => Promise<HealthStatus>;
   resolveRedirectUseCase?: ResolveRedirectUseCase;
   betterAuthHandler?: BetterAuthHandler;
+  authSessionService?: AuthSessionService;
+  linksModule?: Pick<
+    LinksModule,
+    "createLinkUseCase" | "listLinksUseCase" | "getLinkDetailUseCase"
+  >;
 }
 
 export function createApp(deps: CreateAppDependencies = {}): Elysia {
   const healthStatusResolver = deps.getHealthStatus ?? getHealthStatus;
-  const betterAuthHandler =
-    deps.betterAuthHandler ?? createDefaultBetterAuthInstance().handler;
+  const betterAuthInstance = deps.betterAuthHandler
+    ? null
+    : createDefaultBetterAuthInstance();
+  const betterAuthHandler = deps.betterAuthHandler ?? betterAuthInstance?.handler;
+  if (!betterAuthHandler) {
+    throw new Error("Better Auth handler is not configured.");
+  }
+  const authSessionService =
+    deps.authSessionService ??
+    (betterAuthInstance
+      ? new BetterAuthSessionService(
+          async (request) =>
+            (await betterAuthInstance.api.getSession({ headers: request.headers })) ??
+            null,
+          async (userId) => {
+            await new UserProfilesRepository().ensure(userId);
+          },
+        )
+      : { resolveFromRequest: async () => null });
+  const linksModule = deps.linksModule ??
+    (betterAuthInstance ? new LinksModule() : createUnconfiguredLinksModule());
   const redirectModule = new RedirectModule({
     resolveRedirectUseCase: deps.resolveRedirectUseCase,
   });
@@ -57,6 +86,12 @@ export function createApp(deps: CreateAppDependencies = {}): Elysia {
       handler: betterAuthHandler,
     }),
   );
+  app.use(
+    linksApiRoutes({
+      authSessionService,
+      linksModule,
+    }),
+  );
 
   redirectModule.registerPublicRoutes(app);
 
@@ -77,6 +112,21 @@ export function createApp(deps: CreateAppDependencies = {}): Elysia {
   });
 
   return app;
+}
+
+function createUnconfiguredLinksModule(): Pick<
+  LinksModule,
+  "createLinkUseCase" | "listLinksUseCase" | "getLinkDetailUseCase"
+> {
+  const fail = async () => {
+    throw new Error("Links module is not configured.");
+  };
+
+  return {
+    createLinkUseCase: { execute: fail },
+    listLinksUseCase: { execute: fail },
+    getLinkDetailUseCase: { execute: fail },
+  } as never;
 }
 
 async function bootstrap() {
