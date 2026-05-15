@@ -21,12 +21,13 @@ function NewLinkPage() {
     const url = String(formData.get('url') ?? '').trim()
     const alias = String(formData.get('alias') ?? '').trim()
     const expiresAt = String(formData.get('expires_at') ?? '').trim()
+    const expiresAtIso = expiresAt ? new Date(expiresAt).toISOString() : undefined
 
     try {
       const link = await createLink({
         url,
         ...(alias ? { alias } : {}),
-        ...(expiresAt ? { expires_at: expiresAt } : {}),
+        ...(expiresAtIso ? { expires_at: expiresAtIso } : {}),
       })
 
       await navigate({ to: '/dashboard/links/$id', params: { id: link.id } })

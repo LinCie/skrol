@@ -133,6 +133,47 @@ describe('dashboard links pages', () => {
     })
   })
 
+  it('converts create expiration date to an RFC3339 timestamp', async () => {
+    const fetchMock = vi.mocked(fetch)
+    const createdLink = {
+      id: 'link_123',
+      short_url: 'https://skrol.test/docs',
+      destination_url: 'https://example.com/docs',
+      alias: 'docs',
+      created_at: '2026-05-16T10:00:00.000Z',
+      expires_at: '2026-12-31T23:59:00.000Z',
+    }
+    const localExpiration = '2026-12-31T23:59'
+
+    fetchMock.mockResolvedValue(await mockJsonResponse(createdLink, 201))
+
+    renderAt('/dashboard/links/new')
+
+    fireEvent.change(await screen.findByRole('textbox', { name: /destination url/i }), {
+      target: { value: 'https://example.com/docs' },
+    })
+    fireEvent.change(screen.getByRole('textbox', { name: /custom alias/i }), {
+      target: { value: 'docs' },
+    })
+    fireEvent.change(screen.getByLabelText(/expiration date/i), {
+      target: { value: localExpiration },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /create link/i }))
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith('/api/v1/links', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          url: 'https://example.com/docs',
+          alias: 'docs',
+          expires_at: new Date(localExpiration).toISOString(),
+        }),
+      })
+    })
+  })
+
   it('shows detail not-found state', async () => {
     const fetchMock = vi.mocked(fetch)
     fetchMock.mockResolvedValueOnce(
