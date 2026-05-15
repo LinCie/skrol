@@ -16,7 +16,6 @@ import {
 } from "@/shared/infrastructure/caching/redis";
 import { getHealthStatus, type HealthStatus } from "@/health";
 import { RedirectModule } from "@/modules/redirect/redirect.module";
-import { registerPublicRedirectRoute } from "@/modules/redirect/presentation/routes/public-redirect-route";
 import type { ResolveRedirectUseCase } from "@/modules/redirect/application/resolve-redirect.use-case";
 
 export interface CreateAppDependencies {
@@ -26,8 +25,9 @@ export interface CreateAppDependencies {
 
 export function createApp(deps: CreateAppDependencies = {}): Elysia {
   const healthStatusResolver = deps.getHealthStatus ?? getHealthStatus;
-  const resolveRedirectUseCase =
-    deps.resolveRedirectUseCase ?? new RedirectModule().resolveRedirectUseCase;
+  const redirectModule = new RedirectModule({
+    resolveRedirectUseCase: deps.resolveRedirectUseCase,
+  });
 
   const app = new Elysia();
 
@@ -44,7 +44,7 @@ export function createApp(deps: CreateAppDependencies = {}): Elysia {
     version: "1.0.0",
   }));
 
-  registerPublicRedirectRoute(app, { resolveRedirectUseCase });
+  redirectModule.registerPublicRoutes(app);
 
   app.onRequest(({ request }) => {
     const url = new URL(request.url);
