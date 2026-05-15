@@ -138,11 +138,22 @@ function parseExpiresAt(value: unknown): Date | null | false {
 	}
 
 	const expiresAt = new Date(value);
-	if (!Number.isFinite(expiresAt.getTime()) || expiresAt <= new Date()) {
+	if (
+		!Number.isFinite(expiresAt.getTime()) ||
+		!isStrictUtcTimestamp(value, expiresAt) ||
+		expiresAt <= new Date()
+	) {
 		return false;
 	}
 
 	return expiresAt;
+}
+
+function isStrictUtcTimestamp(value: string, parsed: Date): boolean {
+	const normalized = value.replace(/\.000Z$/, "Z");
+	const parsedNormalized = parsed.toISOString().replace(/\.000Z$/, "Z");
+
+	return normalized === parsedNormalized;
 }
 
 function createLinkError(code: string): Response {

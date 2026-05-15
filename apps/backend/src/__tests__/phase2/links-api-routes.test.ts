@@ -77,7 +77,11 @@ describe("Phase 2 links API routes", () => {
 	it("rejects invalid or non-future expires_at before creating a link", async () => {
 		const fakes = createLinksApiTestApp({ principalUserId: ownerA });
 
-		for (const expiresAt of ["not-a-date", "2000-01-01T00:00:00.000Z"]) {
+		for (const expiresAt of [
+			"not-a-date",
+			"2000-01-01T00:00:00.000Z",
+			"2999-02-30T00:00:00.000Z",
+		]) {
 			const response = await fakes.app.handle(
 				new Request("http://localhost/api/v1/links", {
 					method: "POST",
