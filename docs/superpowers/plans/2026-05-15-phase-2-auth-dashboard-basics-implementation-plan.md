@@ -438,7 +438,7 @@ Expected: PASS.
 - Create: `apps/frontend/src/__tests__/phase2/auth-pages.test.tsx`
 - Modify: `apps/frontend/src/routeTree.gen.ts`
 
-- [ ] **Step 1: Add failing auth page tests**
+- [x] **Step 1: Add failing auth page tests**
 
 Must cover:
 
@@ -450,12 +450,12 @@ Must cover:
 - successful logout redirects to `/login`
 - protected dashboard route becomes inaccessible after logout
 
-- [ ] **Step 2: Run tests and confirm fail first**
+- [x] **Step 2: Run tests and confirm fail first**
 
 Run: `bun run test -- --run src/__tests__/phase2/auth-pages.test.tsx`  
 Expected: FAIL.
 
-- [ ] **Step 3: Implement routes and behavior**
+- [x] **Step 3: Implement routes and behavior**
 
 Use:
 
@@ -463,7 +463,7 @@ Use:
 - `authClient.signUp.email(...)`
 - `authClient.getSession()` as needed
 
-- [ ] **Step 4: Re-run tests**
+- [x] **Step 4: Re-run tests**
 
 Run: `bun run test -- --run src/__tests__/phase2/auth-pages.test.tsx`  
 Expected: PASS.
