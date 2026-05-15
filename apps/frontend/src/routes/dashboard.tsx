@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { Outlet, createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { authClient } from '../lib/auth-client'
 
 export const Route = createFileRoute('/dashboard')({
@@ -69,7 +69,7 @@ function Dashboard() {
       ) : null}
 
       <section className="py-10">
-        <p className="text-slate-600">Dashboard shell ready.</p>
+        <Outlet />
       </section>
     </main>
   )
