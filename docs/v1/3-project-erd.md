@@ -322,7 +322,7 @@ Stores short-link records. This is the central product entity.
 
 | Column                   |        Type | Required | Notes                                                 |
 | ------------------------ | ----------: | -------: | ----------------------------------------------------- |
-| `id`                     |        text |      yes | Primary key, for example `link_...`.                  |
+| `id`                     |        uuid |      yes | Primary key, default `uuidv7()`.                      |
 | `user_id`                |        text |      yes | Durable owner. References Better Auth user ID.        |
 | `code`                   |        text |      yes | Public short code. Unique. Lowercase.                 |
 | `destination_url`        |        text |      yes | Validated HTTP/HTTPS destination.                     |
