@@ -45,10 +45,11 @@
 ### Task 1: Add Reserved Route Constants
 
 **Files:**
+
 - Create: `apps/backend/src/modules/links/constants/reserved-routes.ts`
 - Test: `apps/backend/src/__tests__/phase1/alias-validator.test.ts`
 
-- [ ] **Step 1: Write the failing test for reserved segment helper**
+- [x] **Step 1: Write the failing test for reserved segment helper**
 
 ```ts
 import { describe, expect, it } from "bun:test";
@@ -66,12 +67,12 @@ describe("reserved route segments", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bun test src/__tests__/phase1/alias-validator.test.ts`
 Expected: FAIL with module not found for `reserved-routes`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 ```ts
 const RESERVED_SEGMENTS = new Set([
@@ -95,12 +96,12 @@ export function isReservedRouteSegment(value: string): boolean {
 export { RESERVED_SEGMENTS };
 ```
 
-- [ ] **Step 4: Re-run test to verify pass**
+- [x] **Step 4: Re-run test to verify pass**
 
 Run: `bun test src/__tests__/phase1/alias-validator.test.ts`
 Expected: PASS for reserved segment cases.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/modules/links/constants/reserved-routes.ts src/__tests__/phase1/alias-validator.test.ts
@@ -112,13 +113,17 @@ git commit -m "test: add reserved route segment helper coverage"
 ### Task 2: Implement Alias Validation
 
 **Files:**
+
 - Modify: `apps/backend/src/__tests__/phase1/alias-validator.test.ts`
 - Create: `apps/backend/src/modules/links/validation/alias-validator.ts`
 
-- [ ] **Step 1: Extend failing tests for normalization and regex constraints**
+- [x] **Step 1: Extend failing tests for normalization and regex constraints**
 
 ```ts
-import { normalizeAlias, validateAliasOrThrow } from "@/modules/links/validation/alias-validator";
+import {
+  normalizeAlias,
+  validateAliasOrThrow,
+} from "@/modules/links/validation/alias-validator";
 
 it("normalizes alias by trim and lowercase", () => {
   expect(normalizeAlias("  Docs_123 ")).toBe("docs_123");
@@ -133,12 +138,12 @@ it("rejects reserved alias", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bun test src/__tests__/phase1/alias-validator.test.ts`
 Expected: FAIL with missing alias validator exports.
 
-- [ ] **Step 3: Implement validator**
+- [x] **Step 3: Implement validator**
 
 ```ts
 const ALIAS_REGEX = /^[a-z0-9_-]{3,64}$/;
@@ -162,12 +167,12 @@ export function validateAliasOrThrow(input: string): string {
 }
 ```
 
-- [ ] **Step 4: Re-run test to verify pass**
+- [x] **Step 4: Re-run test to verify pass**
 
 Run: `bun test src/__tests__/phase1/alias-validator.test.ts`
 Expected: PASS including normalization/reserved cases.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/modules/links/validation/alias-validator.ts src/__tests__/phase1/alias-validator.test.ts
@@ -179,10 +184,11 @@ git commit -m "feat: add phase 1 alias normalization and validation"
 ### Task 3: Implement URL Validation with Edge Cases
 
 **Files:**
+
 - Create: `apps/backend/src/modules/links/validation/url-validator.ts`
 - Create: `apps/backend/src/__tests__/phase1/url-validator.test.ts`
 
-- [ ] **Step 1: Write failing tests for safe/unsafe URL matrix**
+- [x] **Step 1: Write failing tests for safe/unsafe URL matrix**
 
 ```ts
 import { describe, expect, it } from "bun:test";
@@ -190,30 +196,40 @@ import { validateDestinationUrlOrThrow } from "@/modules/links/validation/url-va
 
 describe("url-validator", () => {
   it("accepts https URL", () => {
-    expect(validateDestinationUrlOrThrow("https://skrol.ink/docs").hostname).toBe("skrol.ink");
+    expect(
+      validateDestinationUrlOrThrow("https://skrol.ink/docs").hostname,
+    ).toBe("skrol.ink");
   });
 
   it("rejects non-http schemes", () => {
-    expect(() => validateDestinationUrlOrThrow("javascript:alert(1)")).toThrow("unsafe_url");
+    expect(() => validateDestinationUrlOrThrow("javascript:alert(1)")).toThrow(
+      "unsafe_url",
+    );
   });
 
   it("rejects loopback/local/private literals", () => {
-    expect(() => validateDestinationUrlOrThrow("http://127.0.0.1/path")).toThrow("unsafe_url");
-    expect(() => validateDestinationUrlOrThrow("http://[::1]/path")).toThrow("unsafe_url");
+    expect(() =>
+      validateDestinationUrlOrThrow("http://127.0.0.1/path"),
+    ).toThrow("unsafe_url");
+    expect(() => validateDestinationUrlOrThrow("http://[::1]/path")).toThrow(
+      "unsafe_url",
+    );
   });
 
   it("rejects userinfo host confusion", () => {
-    expect(() => validateDestinationUrlOrThrow("https://trusted.com@evil.com")).toThrow("unsafe_url");
+    expect(() =>
+      validateDestinationUrlOrThrow("https://trusted.com@evil.com"),
+    ).toThrow("unsafe_url");
   });
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bun test src/__tests__/phase1/url-validator.test.ts`
 Expected: FAIL with module not found for url validator.
 
-- [ ] **Step 3: Implement URL validator**
+- [x] **Step 3: Implement URL validator**
 
 ```ts
 const ALLOWED_SCHEMES = new Set(["http:", "https:"]);
@@ -244,12 +260,12 @@ export function validateDestinationUrlOrThrow(rawUrl: string): URL {
 }
 ```
 
-- [ ] **Step 4: Re-run test to verify pass**
+- [x] **Step 4: Re-run test to verify pass**
 
 Run: `bun test src/__tests__/phase1/url-validator.test.ts`
 Expected: PASS for accepted/rejected URL matrix.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/modules/links/validation/url-validator.ts src/__tests__/phase1/url-validator.test.ts
@@ -261,10 +277,11 @@ git commit -m "feat: add phase 1 destination URL safety validation"
 ### Task 4: Add Domain Blocklist Normalization and Matching
 
 **Files:**
+
 - Create: `apps/backend/src/modules/safety/domain-blocklist.ts`
 - Create: `apps/backend/src/__tests__/phase1/domain-blocklist.test.ts`
 
-- [ ] **Step 1: Write failing tests for exact/subdomain/disabled matching**
+- [x] **Step 1: Write failing tests for exact/subdomain/disabled matching**
 
 ```ts
 import { describe, expect, it } from "bun:test";
@@ -284,12 +301,12 @@ describe("domain blocklist", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bun test src/__tests__/phase1/domain-blocklist.test.ts`
 Expected: FAIL with module not found.
 
-- [ ] **Step 3: Implement normalization and matching**
+- [x] **Step 3: Implement normalization and matching**
 
 ```ts
 export function normalizeHostForBlocklist(host: string): string {
@@ -311,12 +328,12 @@ export function domainMatchesBlocklist(
 }
 ```
 
-- [ ] **Step 4: Re-run test to verify pass**
+- [x] **Step 4: Re-run test to verify pass**
 
 Run: `bun test src/__tests__/phase1/domain-blocklist.test.ts`
 Expected: PASS for exact/subdomain/disabled behavior.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/modules/safety/domain-blocklist.ts src/__tests__/phase1/domain-blocklist.test.ts
@@ -328,10 +345,11 @@ git commit -m "feat: add phase 1 domain blocklist matching semantics"
 ### Task 5: Canonicalize Phase 1 Migration and Schema Constraints
 
 **Files:**
+
 - Modify: `apps/backend/migrations/1778647029160_create_initial_tables.ts`
 - Create: `apps/backend/src/__tests__/phase1/migration-schema.test.ts`
 
-- [ ] **Step 1: Write failing migration schema assertions**
+- [x] **Step 1: Write failing migration schema assertions**
 
 ```ts
 import { describe, expect, it } from "bun:test";
@@ -345,12 +363,12 @@ describe("phase1 migration schema", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bun test src/__tests__/phase1/migration-schema.test.ts`
 Expected: FAIL with missing checks/constraint names or missing helper.
 
-- [ ] **Step 3: Update migration to canonical Phase 1 shape**
+- [x] **Step 3: Update migration to canonical Phase 1 shape**
 
 ```ts
 .addCheckConstraint("links_status_check", sql`status IN ('active','disabled','flagged','deleted')`)
@@ -363,12 +381,12 @@ await db.schema
   .execute();
 ```
 
-- [ ] **Step 4: Run migration + type generation checks**
+- [x] **Step 4: Run migration + type generation checks**
 
 Run: `bun run db:migrate && bun run db:typegen && bun run db:typecheck`
 Expected: migration success and generated types verified.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add migrations/1778647029160_create_initial_tables.ts src/__tests__/phase1/migration-schema.test.ts src/shared/infrastructure/database/types.ts
@@ -380,11 +398,12 @@ git commit -m "feat: align phase 1 migration constraints and indexes"
 ### Task 6: Implement Link Repository and Code Generator
 
 **Files:**
+
 - Create: `apps/backend/src/modules/links/repositories/links-repository.ts`
 - Create: `apps/backend/src/modules/links/services/code-generator.ts`
 - Modify: `apps/backend/src/__tests__/phase1/create-link-service.test.ts`
 
-- [ ] **Step 1: Write failing tests for collision retry behavior**
+- [x] **Step 1: Write failing tests for collision retry behavior**
 
 ```ts
 it("retries code generation up to five attempts on unique collisions", async () => {
@@ -396,12 +415,12 @@ it("retries code generation up to five attempts on unique collisions", async () 
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bun test src/__tests__/phase1/create-link-service.test.ts`
 Expected: FAIL with missing generator/repository symbols.
 
-- [ ] **Step 3: Implement code generator and minimal repository hooks**
+- [x] **Step 3: Implement code generator and minimal repository hooks**
 
 ```ts
 const ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -418,12 +437,12 @@ export async function generateUniqueCode(deps: {
 }
 ```
 
-- [ ] **Step 4: Re-run tests to verify pass**
+- [x] **Step 4: Re-run tests to verify pass**
 
 Run: `bun test src/__tests__/phase1/create-link-service.test.ts`
 Expected: PASS for collision retry test.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/modules/links/repositories/links-repository.ts src/modules/links/services/code-generator.ts src/__tests__/phase1/create-link-service.test.ts
@@ -435,10 +454,11 @@ git commit -m "feat: add links repository and unique code generation retry"
 ### Task 7: Implement Auth-Neutral Create Link Service
 
 **Files:**
+
 - Create: `apps/backend/src/modules/links/services/create-link-service.ts`
 - Modify: `apps/backend/src/__tests__/phase1/create-link-service.test.ts`
 
-- [ ] **Step 1: Write failing service contract tests**
+- [x] **Step 1: Write failing service contract tests**
 
 ```ts
 import { createLink } from "@/modules/links/services/create-link-service";
@@ -455,12 +475,12 @@ it("creates a link with ownerUserId and validated inputs", async () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bun test src/__tests__/phase1/create-link-service.test.ts`
 Expected: FAIL with missing create-link service module.
 
-- [ ] **Step 3: Implement minimal service**
+- [x] **Step 3: Implement minimal service**
 
 ```ts
 export async function createLink(input: {
@@ -485,12 +505,12 @@ export async function createLink(input: {
 }
 ```
 
-- [ ] **Step 4: Re-run tests to verify pass**
+- [x] **Step 4: Re-run tests to verify pass**
 
 Run: `bun test src/__tests__/phase1/create-link-service.test.ts`
 Expected: PASS for contract, normalization, and validation scenarios.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/modules/links/services/create-link-service.ts src/__tests__/phase1/create-link-service.test.ts
@@ -502,39 +522,49 @@ git commit -m "feat: add auth-neutral link creation service"
 ### Task 8: Implement Effective-State Resolver
 
 **Files:**
+
 - Create: `apps/backend/src/modules/redirect/services/resolve-link-state.ts`
 - Create: `apps/backend/src/__tests__/phase1/resolve-link-state.test.ts`
 
-- [ ] **Step 1: Write failing tests for precedence**
+- [x] **Step 1: Write failing tests for precedence**
 
 ```ts
 import { resolveLinkState } from "@/modules/redirect/services/resolve-link-state";
 
 it("treats deleted_at as deleted even if status active", () => {
-  const state = resolveLinkState({ status: "active", deletedAt: new Date(), expiresAt: null }, new Date());
+  const state = resolveLinkState(
+    { status: "active", deletedAt: new Date(), expiresAt: null },
+    new Date(),
+  );
   expect(state).toBe("deleted");
 });
 
 it("returns expired when expiresAt equals now", () => {
   const now = new Date("2026-01-01T00:00:00.000Z");
-  const state = resolveLinkState({ status: "active", deletedAt: null, expiresAt: now }, now);
+  const state = resolveLinkState(
+    { status: "active", deletedAt: null, expiresAt: now },
+    now,
+  );
   expect(state).toBe("expired");
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bun test src/__tests__/phase1/resolve-link-state.test.ts`
 Expected: FAIL with module not found.
 
-- [ ] **Step 3: Implement precedence resolver**
+- [x] **Step 3: Implement precedence resolver**
 
 ```ts
-export function resolveLinkState(link: {
-  status: "active" | "disabled" | "flagged" | "deleted";
-  deletedAt: Date | null;
-  expiresAt: Date | null;
-}, now: Date): "deleted" | "flagged" | "disabled" | "expired" | "active" {
+export function resolveLinkState(
+  link: {
+    status: "active" | "disabled" | "flagged" | "deleted";
+    deletedAt: Date | null;
+    expiresAt: Date | null;
+  },
+  now: Date,
+): "deleted" | "flagged" | "disabled" | "expired" | "active" {
   if (link.deletedAt || link.status === "deleted") return "deleted";
   if (link.status === "flagged") return "flagged";
   if (link.status === "disabled") return "disabled";
@@ -543,12 +573,12 @@ export function resolveLinkState(link: {
 }
 ```
 
-- [ ] **Step 4: Re-run test to verify pass**
+- [x] **Step 4: Re-run test to verify pass**
 
 Run: `bun test src/__tests__/phase1/resolve-link-state.test.ts`
 Expected: PASS for precedence cases.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/modules/redirect/services/resolve-link-state.ts src/__tests__/phase1/resolve-link-state.test.ts
@@ -560,11 +590,12 @@ git commit -m "feat: add redirect effective state precedence resolver"
 ### Task 9: Implement Redirect Service and Click Event Insert Policy
 
 **Files:**
+
 - Create: `apps/backend/src/modules/analytics/repositories/click-events-repository.ts`
 - Create: `apps/backend/src/modules/redirect/services/redirect-service.ts`
 - Modify: `apps/backend/src/__tests__/phase1/public-redirect-route.test.ts`
 
-- [ ] **Step 1: Write failing tests for status mapping and fail-open analytics**
+- [x] **Step 1: Write failing tests for status mapping and fail-open analytics**
 
 ```ts
 it("maps missing link to 404", async () => {
@@ -578,12 +609,12 @@ it("returns 302 when analytics insert fails", async () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bun test src/__tests__/phase1/public-redirect-route.test.ts`
 Expected: FAIL with missing redirect service.
 
-- [ ] **Step 3: Implement redirect service with bounded analytics insert**
+- [x] **Step 3: Implement redirect service with bounded analytics insert**
 
 ```ts
 export async function resolveRedirect(input: { code: string }) {
@@ -603,12 +634,12 @@ export async function resolveRedirect(input: { code: string }) {
 }
 ```
 
-- [ ] **Step 4: Re-run tests to verify pass**
+- [x] **Step 4: Re-run tests to verify pass**
 
 Run: `bun test src/__tests__/phase1/public-redirect-route.test.ts`
 Expected: PASS for mapping and analytics fail-open behavior.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/modules/analytics/repositories/click-events-repository.ts src/modules/redirect/services/redirect-service.ts src/__tests__/phase1/public-redirect-route.test.ts
@@ -620,11 +651,12 @@ git commit -m "feat: add redirect service with best-effort analytics insertion"
 ### Task 10: Register `GET /:code` Route Safely
 
 **Files:**
+
 - Create: `apps/backend/src/modules/redirect/routes/public-redirect-route.ts`
 - Modify: `apps/backend/src/index.ts`
 - Modify: `apps/backend/src/__tests__/phase1/public-redirect-route.test.ts`
 
-- [ ] **Step 1: Write failing route precedence and reserved-segment tests**
+- [x] **Step 1: Write failing route precedence and reserved-segment tests**
 
 ```ts
 it("does not treat /health as redirect code", async () => {
@@ -638,12 +670,12 @@ it("treats unknown short code as 404", async () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bun test src/__tests__/phase1/public-redirect-route.test.ts`
 Expected: FAIL because route is not registered.
 
-- [ ] **Step 3: Implement route and wire into bootstrap**
+- [x] **Step 3: Implement route and wire into bootstrap**
 
 ```ts
 app.get("/:code", async ({ params, set, request }) => {
@@ -664,12 +696,12 @@ app.get("/:code", async ({ params, set, request }) => {
 });
 ```
 
-- [ ] **Step 4: Re-run test to verify pass**
+- [x] **Step 4: Re-run test to verify pass**
 
 Run: `bun test src/__tests__/phase1/public-redirect-route.test.ts`
 Expected: PASS for reserved route safety and unknown code behavior.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/modules/redirect/routes/public-redirect-route.ts src/index.ts src/__tests__/phase1/public-redirect-route.test.ts
@@ -681,15 +713,18 @@ git commit -m "feat: register public redirect route with reserved segment protec
 ### Task 11: Enforce Logging and Privacy Boundaries
 
 **Files:**
+
 - Modify: `apps/backend/src/modules/redirect/services/redirect-service.ts`
 - Modify: `apps/backend/src/shared/presentation/logging/logger.ts`
 - Modify: `apps/backend/src/__tests__/phase1/public-redirect-route.test.ts`
 
-- [ ] **Step 1: Add failing tests for no-cookie and no-sensitive analytics persistence**
+- [x] **Step 1: Add failing tests for no-cookie and no-sensitive analytics persistence**
 
 ```ts
 it("does not set Set-Cookie on redirect", async () => {
-  const response = await fetch("http://localhost:3000/docs", { redirect: "manual" });
+  const response = await fetch("http://localhost:3000/docs", {
+    redirect: "manual",
+  });
   expect(response.headers.get("set-cookie")).toBeNull();
 });
 
@@ -700,22 +735,25 @@ it("does not persist raw IP or full user-agent", async () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bun test src/__tests__/phase1/public-redirect-route.test.ts`
 Expected: FAIL until privacy boundaries are enforced.
 
-- [ ] **Step 3: Implement logging scrub and analytics payload restrictions**
+- [x] **Step 3: Implement logging scrub and analytics payload restrictions**
 
 ```ts
-logger.info({
-  requestId,
-  code,
-  linkId,
-  outcome,
-  status,
-  durationMs,
-}, "redirect decision");
+logger.info(
+  {
+    requestId,
+    code,
+    linkId,
+    outcome,
+    status,
+    durationMs,
+  },
+  "redirect decision",
+);
 
 await insertClickEvent({
   linkId,
@@ -729,12 +767,12 @@ await insertClickEvent({
 });
 ```
 
-- [ ] **Step 4: Re-run test to verify pass**
+- [x] **Step 4: Re-run test to verify pass**
 
 Run: `bun test src/__tests__/phase1/public-redirect-route.test.ts`
 Expected: PASS for no cookie + privacy-safe event fields.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/modules/redirect/services/redirect-service.ts src/shared/presentation/logging/logger.ts src/__tests__/phase1/public-redirect-route.test.ts
@@ -746,9 +784,10 @@ git commit -m "fix: enforce phase 1 redirect logging and privacy boundaries"
 ### Task 12: Full Verification and Phase 1 Gate
 
 **Files:**
+
 - Modify: `apps/backend/package.json`
 
-- [ ] **Step 1: Add dedicated script for phase 1 test suite**
+- [x] **Step 1: Add dedicated script for phase 1 test suite**
 
 ```json
 {
@@ -758,22 +797,22 @@ git commit -m "fix: enforce phase 1 redirect logging and privacy boundaries"
 }
 ```
 
-- [ ] **Step 2: Run focused checks**
+- [x] **Step 2: Run focused checks**
 
 Run: `bun run lint && bun run check-types && bun run test:phase1`
 Expected: all checks PASS.
 
-- [ ] **Step 3: Run migration/type integrity checks**
+- [x] **Step 3: Run migration/type integrity checks**
 
 Run: `bun run db:migrate:list && bun run db:typecheck`
 Expected: migration list prints expected state and typecheck passes.
 
-- [ ] **Step 4: Run smoke tests**
+- [x] **Step 4: Run smoke tests**
 
 Run: `bun test src/__tests__/index.test.ts`
 Expected: PASS for `/` and `/health`, plus no regressions after redirect route wiring.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add package.json

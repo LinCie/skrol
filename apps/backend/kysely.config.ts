@@ -1,14 +1,11 @@
 import { defineConfig } from "kysely-ctl";
-import {
-  getDatabase,
-  initializeDatabase,
-} from "@/shared/infrastructure/database";
+import { createDatabaseClient } from "@/shared/infrastructure/database";
 import config from "@/shared/config";
 
-initializeDatabase(config.databaseUrl);
+const database = createDatabaseClient(config.databaseUrl);
 
 export default defineConfig({
-  kysely: getDatabase(),
+  kysely: database,
   migrations: {
     migrationFolder: "migrations",
   },

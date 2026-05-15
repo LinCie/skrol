@@ -14,7 +14,56 @@ import {
   initializeRedis,
   closeRedis,
 } from "@/shared/infrastructure/caching/redis";
-import { getHealthStatus } from "@/health";
+import { getHealthStatus, type HealthStatus } from "@/health";
+import { RedirectModule } from "@/modules/redirect/redirect.module";
+import { registerPublicRedirectRoute } from "@/modules/redirect/presentation/routes/public-redirect-route";
+import type { ResolveRedirectUseCase } from "@/modules/redirect/application/resolve-redirect.use-case";
+
+export interface CreateAppDependencies {
+  getHealthStatus?: (databaseUrl: string) => Promise<HealthStatus>;
+  resolveRedirectUseCase?: ResolveRedirectUseCase;
+}
+
+export function createApp(deps: CreateAppDependencies = {}): Elysia {
+  const healthStatusResolver = deps.getHealthStatus ?? getHealthStatus;
+  const resolveRedirectUseCase =
+    deps.resolveRedirectUseCase ?? new RedirectModule().resolveRedirectUseCase;
+
+  const app = new Elysia();
+
+  app.get("/health", async () => {
+    const health = await healthStatusResolver(config.databaseUrl);
+    return new Response(JSON.stringify(health), {
+      status: health.status === "healthy" ? 200 : 503,
+      headers: { "Content-Type": "application/json" },
+    });
+  });
+
+  app.get("/", () => ({
+    message: "Backend service is running",
+    version: "1.0.0",
+  }));
+
+  registerPublicRedirectRoute(app, { resolveRedirectUseCase });
+
+  app.onRequest(({ request }) => {
+    const url = new URL(request.url);
+    logger.info(
+      { method: request.method, path: url.pathname },
+      "Incoming request",
+    );
+  });
+
+  app.onError(({ error, request }) => {
+    const url = new URL(request.url);
+    logger.error(
+      { error, method: request.method, path: url.pathname },
+      "Request error",
+    );
+  });
+
+  return app;
+}
 
 async function bootstrap() {
   try {
@@ -31,38 +80,7 @@ async function bootstrap() {
     logger.info("Dependencies initialized");
 
     // Step 4: Create app and register routes
-    const app = new Elysia();
-
-    // Health endpoint
-    app.get("/health", async () => {
-      const health = await getHealthStatus(config.databaseUrl);
-      return new Response(JSON.stringify(health), {
-        status: health.status === "healthy" ? 200 : 503,
-        headers: { "Content-Type": "application/json" },
-      });
-    });
-
-    // Root endpoint
-    app.get("/", () => ({
-      message: "Backend service is running",
-      version: "1.0.0",
-    }));
-
-    // Register request logging
-    app.onRequest(({ request }) => {
-      logger.info(
-        { method: request.method, url: request.url },
-        "Incoming request",
-      );
-    });
-
-    // Register error logging
-    app.onError(({ error, request }) => {
-      logger.error(
-        { error, method: request.method, url: request.url },
-        "Request error",
-      );
-    });
+    const app = createApp();
 
     // Step 5: Start server
     app.listen(config.port);
@@ -87,4 +105,13 @@ async function bootstrap() {
   }
 }
 
-bootstrap();
+const entrypoint = process.argv[1] ?? "";
+const shouldBootstrap =
+  entrypoint.endsWith("/src/index.ts") ||
+  entrypoint.endsWith("\\src\\index.ts") ||
+  entrypoint.endsWith("/dist/server") ||
+  entrypoint.endsWith("\\dist\\server");
+
+if (shouldBootstrap) {
+  void bootstrap();
+}

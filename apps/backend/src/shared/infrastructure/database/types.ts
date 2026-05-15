@@ -30,7 +30,7 @@ export interface ClickEvents {
   country: string | null;
   device: string | null;
   id: Generated<string>;
-  isBot: Generated<boolean | null>;
+  isBot: Generated<boolean>;
   linkId: string;
   os: string | null;
   referrerDomain: string | null;
@@ -53,7 +53,7 @@ export interface LinkAuditLogs {
   linkId: string;
   newValue: Json | null;
   previousValue: Json | null;
-  userId: string;
+  userId: string | null;
 }
 
 export interface Links {

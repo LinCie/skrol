@@ -1,7 +1,6 @@
 import { Kysely, sql } from "kysely";
 
 export async function up(db: Kysely<unknown>): Promise<void> {
-  // Create user_profiles table
   await db.schema
     .createTable("user_profiles")
     .addColumn("user_id", "text", (col) => col.primaryKey())
@@ -12,14 +11,17 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn("updated_at", "timestamptz", (col) =>
       col.notNull().defaultTo(sql`now()`),
     )
+    .addCheckConstraint(
+      "user_profiles_role_check",
+      sql`role IN ('user','admin')`,
+    )
     .execute();
 
-  // Create links table
   await db.schema
     .createTable("links")
     .addColumn("id", "uuid", (col) => col.primaryKey().defaultTo(sql`uuidv7()`))
     .addColumn("user_id", "text", (col) => col.notNull())
-    .addColumn("code", "text", (col) => col.notNull().unique())
+    .addColumn("code", "text", (col) => col.notNull())
     .addColumn("destination_url", "text", (col) => col.notNull())
     .addColumn("title", "text")
     .addColumn("status", "text", (col) => col.notNull().defaultTo("active"))
@@ -32,9 +34,14 @@ export async function up(db: Kysely<unknown>): Promise<void> {
       col.notNull().defaultTo(sql`now()`),
     )
     .addColumn("deleted_at", "timestamptz")
+    .addUniqueConstraint("links_code_unique", ["code"])
+    .addCheckConstraint(
+      "links_status_check",
+      sql`status IN ('active','disabled','flagged','deleted')`,
+    )
+    .addCheckConstraint("links_code_lowercase_check", sql`code = lower(code)`)
     .execute();
 
-  // Create click_events table
   await db.schema
     .createTable("click_events")
     .addColumn("id", "uuid", (col) => col.primaryKey().defaultTo(sql`uuidv7()`))
@@ -47,15 +54,14 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn("browser", "text")
     .addColumn("os", "text")
     .addColumn("device", "text")
-    .addColumn("is_bot", "boolean", (col) => col.defaultTo(false))
+    .addColumn("is_bot", "boolean", (col) => col.notNull().defaultTo(false))
     .execute();
 
-  // Create link_audit_logs table
   await db.schema
     .createTable("link_audit_logs")
     .addColumn("id", "uuid", (col) => col.primaryKey().defaultTo(sql`uuidv7()`))
     .addColumn("link_id", "uuid", (col) => col.notNull())
-    .addColumn("user_id", "text", (col) => col.notNull())
+    .addColumn("user_id", "text")
     .addColumn("actor_api_key_id", "text")
     .addColumn("action", "text", (col) => col.notNull())
     .addColumn("previous_value", "jsonb")
@@ -65,53 +71,38 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     )
     .execute();
 
-  // Create domain_blocklist table
   await db.schema
     .createTable("domain_blocklist")
     .addColumn("id", "uuid", (col) => col.primaryKey().defaultTo(sql`uuidv7()`))
-    .addColumn("domain", "text", (col) => col.notNull().unique())
+    .addColumn("domain", "text", (col) => col.notNull())
     .addColumn("reason", "text")
     .addColumn("created_by_user_id", "text", (col) => col.notNull())
     .addColumn("created_at", "timestamptz", (col) =>
       col.notNull().defaultTo(sql`now()`),
     )
     .addColumn("disabled_at", "timestamptz")
+    .addUniqueConstraint("domain_blocklist_domain_unique", ["domain"])
     .execute();
 
-  // Create indexes for common queries
-  await db.schema
-    .createIndex("idx_links_user_id")
-    .on("links")
-    .column("user_id")
-    .execute();
-
-  await db.schema
-    .createIndex("idx_links_code")
-    .on("links")
-    .column("code")
-    .execute();
-
-  await db.schema
-    .createIndex("idx_click_events_link_id")
-    .on("click_events")
-    .column("link_id")
-    .execute();
-
-  await db.schema
-    .createIndex("idx_link_audit_logs_link_id")
-    .on("link_audit_logs")
-    .column("link_id")
-    .execute();
-
-  await db.schema
-    .createIndex("idx_link_audit_logs_user_id")
-    .on("link_audit_logs")
-    .column("user_id")
-    .execute();
+  await sql`CREATE INDEX links_user_id_idx ON links (user_id)`.execute(db);
+  await sql`CREATE INDEX links_user_id_created_at_idx ON links (user_id, created_at DESC)`.execute(
+    db,
+  );
+  await sql`CREATE INDEX click_events_link_id_idx ON click_events (link_id)`.execute(
+    db,
+  );
+  await sql`CREATE INDEX click_events_clicked_at_idx ON click_events (clicked_at)`.execute(
+    db,
+  );
+  await sql`CREATE INDEX click_events_link_id_clicked_at_idx ON click_events (link_id, clicked_at DESC)`.execute(
+    db,
+  );
+  await sql`CREATE INDEX link_audit_logs_link_id_idx ON link_audit_logs (link_id)`.execute(
+    db,
+  );
 }
 
 export async function down(db: Kysely<unknown>): Promise<void> {
-  // Drop tables in reverse order of creation
   await db.schema.dropTable("domain_blocklist").ifExists().execute();
   await db.schema.dropTable("link_audit_logs").ifExists().execute();
   await db.schema.dropTable("click_events").ifExists().execute();

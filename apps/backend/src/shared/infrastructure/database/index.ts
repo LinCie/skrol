@@ -15,6 +15,19 @@ const maxPoolConnections = 10;
 
 let db: PostgresClient | null = null;
 
+export function createDatabaseClient(databaseUrl: string): PostgresClient {
+  return new Kysely({
+    dialect: new PostgresDialect({
+      pool: new Pool({
+        connectionString: databaseUrl,
+        connectionTimeoutMillis,
+        max: maxPoolConnections,
+      }),
+    }),
+    plugins: [new CamelCasePlugin()],
+  });
+}
+
 export async function initializeDatabase(
   databaseUrl: string,
 ): Promise<PostgresClient> {
@@ -25,16 +38,7 @@ export async function initializeDatabase(
   try {
     logger.info("Initializing PostgreSQL connection...");
 
-    db = new Kysely({
-      dialect: new PostgresDialect({
-        pool: new Pool({
-          connectionString: databaseUrl,
-          connectionTimeoutMillis,
-          max: maxPoolConnections,
-        }),
-      }),
-      plugins: [new CamelCasePlugin()],
-    });
+    db = createDatabaseClient(databaseUrl);
 
     // Test connection
     await sql`SELECT 1`.execute(db);

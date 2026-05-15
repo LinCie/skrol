@@ -96,12 +96,12 @@ Implementation follows a vertical-slice sequence centered on public redirect beh
 2. Reject reserved route segments before link lookup where applicable.
 3. Lookup link by unique `links.code`.
 4. Resolve effective link state using explicit precedence.
-4. Return outcome:
+5. Return outcome:
    - unknown/deleted -> `404`
    - disabled/flagged/expired -> `410`
    - active -> `302` redirect to destination URL
-5. On successful active redirect, write click event as best effort.
-6. If click-event insertion fails, log error and still return redirect.
+6. On successful active redirect, write click event as best effort.
+7. If click-event insertion fails, log error and still return redirect.
 
 Route registration rule:
 

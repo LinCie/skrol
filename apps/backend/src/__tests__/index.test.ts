@@ -2,12 +2,12 @@ import { describe, it, expect, beforeAll, afterAll } from "bun:test";
 import { spawn } from "bun";
 
 describe("Backend Smoke Tests", () => {
-  let process: ReturnType<typeof spawn>;
+  let serverProcess: ReturnType<typeof spawn>;
   const baseUrl = "http://localhost:3000";
 
   beforeAll(async () => {
     // Start the backend server
-    process = spawn(["bun", "run", "dev"], {
+    serverProcess = spawn(["bun", "run", "dev"], {
       cwd: new URL(".", import.meta.url).pathname,
       env: {
         ...process.env,
@@ -27,8 +27,8 @@ describe("Backend Smoke Tests", () => {
 
   afterAll(async () => {
     // Kill the server
-    if (process) {
-      process.kill();
+    if (serverProcess) {
+      serverProcess.kill();
     }
   });
 
