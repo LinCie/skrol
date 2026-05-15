@@ -5,6 +5,8 @@ import {
 import { Link } from "@/modules/links/domain/link.entity";
 import type {
 	CreateLinkRepositoryInput,
+	ListLinksByOwnerInput,
+	ListLinksByOwnerResult,
 	LinksRepository,
 } from "../../application/links.repository";
 
@@ -36,6 +38,53 @@ export class LinksRepositoryImpl implements LinksRepository {
 			.selectFrom("links")
 			.selectAll()
 			.where("code", "=", code)
+			.executeTakeFirst();
+
+		return row ? Link.create(row) : null;
+	}
+
+	async listByOwner(
+		input: ListLinksByOwnerInput,
+	): Promise<ListLinksByOwnerResult> {
+		let query = this.db
+			.selectFrom("links")
+			.selectAll()
+			.where("userId", "=", input.ownerUserId)
+			.where("deletedAt", "is", null);
+
+		if (input.cursor) {
+			const cursorRow = await this.db
+				.selectFrom("links")
+				.select("createdAt")
+				.where("id", "=", input.cursor)
+				.where("userId", "=", input.ownerUserId)
+				.where("deletedAt", "is", null)
+				.executeTakeFirst();
+
+			if (!cursorRow) {
+				return { items: [], nextCursor: null };
+			}
+
+			query = query.where("createdAt", "<", cursorRow.createdAt);
+		}
+
+		const rows = await query
+			.orderBy("createdAt", "desc")
+			.limit(input.limit + 1)
+			.execute();
+		const items = rows.slice(0, input.limit).map((row) => Link.create(row));
+		const nextCursor = rows.length > input.limit ? items.at(-1)?.id ?? null : null;
+
+		return { items, nextCursor };
+	}
+
+	async findByIdForOwner(id: string, ownerUserId: string): Promise<Link | null> {
+		const row = await this.db
+			.selectFrom("links")
+			.selectAll()
+			.where("id", "=", id)
+			.where("userId", "=", ownerUserId)
+			.where("deletedAt", "is", null)
 			.executeTakeFirst();
 
 		return row ? Link.create(row) : null;

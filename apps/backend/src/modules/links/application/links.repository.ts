@@ -11,8 +11,21 @@ export interface CreateLinkRepositoryInput {
   deletedAt: Date | null;
 }
 
+export interface ListLinksByOwnerInput {
+  ownerUserId: string;
+  limit: number;
+  cursor?: string;
+}
+
+export interface ListLinksByOwnerResult {
+  items: Link[];
+  nextCursor: string | null;
+}
+
 export interface LinksRepository {
   codeExists(code: string): Promise<boolean>;
   findByCode(code: string): Promise<Link | null>;
   createLink(input: CreateLinkRepositoryInput): Promise<Link>;
+  listByOwner(input: ListLinksByOwnerInput): Promise<ListLinksByOwnerResult>;
+  findByIdForOwner(id: string, ownerUserId: string): Promise<Link | null>;
 }
