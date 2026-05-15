@@ -73,4 +73,44 @@ describe('route auth guards', () => {
       })
     },
   )
+
+  it('restores a safe internal redirect target for authenticated login users', async () => {
+    getSessionMock.mockResolvedValue({
+      data: {
+        session: { id: 'session-1' },
+        user: { id: 'user-1', email: 'user@example.com' },
+      },
+      error: null,
+    })
+
+    const target = encodeURIComponent('/dashboard?tab=links')
+    const router = renderAt(`/login?redirect=${target}`)
+
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/dashboard')
+      expect(router.state.location.search).toEqual({ tab: 'links' })
+    })
+  })
+
+  it.each(['https://evil.test', '//evil.test'])(
+    'falls back to dashboard for unsafe login redirect %s',
+    async (unsafeRedirect) => {
+      getSessionMock.mockResolvedValue({
+        data: {
+          session: { id: 'session-1' },
+          user: { id: 'user-1', email: 'user@example.com' },
+        },
+        error: null,
+      })
+
+      const router = renderAt(
+        `/login?redirect=${encodeURIComponent(unsafeRedirect)}`,
+      )
+
+      await waitFor(() => {
+        expect(router.state.location.pathname).toBe('/dashboard')
+        expect(router.state.location.search).toEqual({})
+      })
+    },
+  )
 })
