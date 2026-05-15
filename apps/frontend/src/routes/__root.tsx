@@ -9,7 +9,9 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <>
-      <Outlet />
+      <div className="min-h-screen bg-white text-slate-950">
+        <Outlet />
+      </div>
       <TanStackDevtools
         config={{
           position: 'bottom-right',
