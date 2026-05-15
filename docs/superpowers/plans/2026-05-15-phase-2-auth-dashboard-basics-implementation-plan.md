@@ -402,7 +402,7 @@ Expected: PASS.
 - Modify: `apps/frontend/src/routes/__root.tsx`
 - Test: `apps/frontend/src/__tests__/phase2/route-guard.test.tsx`
 
-- [ ] **Step 1: Add failing route-guard tests**
+- [x] **Step 1: Add failing route-guard tests**
 
 Must assert:
 
@@ -410,19 +410,19 @@ Must assert:
 - redirect target is preserved/restored
 - authenticated user at `/login` or `/signup` is redirected to dashboard
 
-- [ ] **Step 2: Run tests and confirm fail first**
+- [x] **Step 2: Run tests and confirm fail first**
 
 Run: `bun run test -- --run src/__tests__/phase2/route-guard.test.tsx`  
 Expected: FAIL.
 
-- [ ] **Step 3: Implement Better Auth frontend client usage**
+- [x] **Step 3: Implement Better Auth frontend client usage**
 
 Direction:
 
 - use `createAuthClient` and Better Auth client APIs
 - do not implement hand-rolled `/api/v1/auth/*` client wrappers for phase 2
 
-- [ ] **Step 4: Implement dashboard guard behavior and rerun tests**
+- [x] **Step 4: Implement dashboard guard behavior and rerun tests**
 
 Run: `bun run test -- --run src/__tests__/phase2/route-guard.test.tsx`  
 Expected: PASS.
