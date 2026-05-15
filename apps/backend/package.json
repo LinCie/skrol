@@ -9,6 +9,7 @@
 		"check-types": "tsc --noEmit",
 		"test": "bun test",
 		"test:phase1": "bun test src/__tests__/phase1",
+		"test:phase2": "bun test src/__tests__/phase2",
 		"auth:schema:generate": "bun run src/modules/auth/infrastructure/better-auth-schema.ts generate",
 		"auth:schema:migrate": "bun run src/modules/auth/infrastructure/better-auth-schema.ts migrate",
 		"db:migrate": "kysely migrate latest",
