@@ -359,7 +359,7 @@ Expected: PASS.
 - Modify: `apps/backend/src/index.ts`
 - Test: `apps/backend/src/__tests__/phase2/links-api-routes.test.ts`
 
-- [ ] **Step 1: Add failing route tests for all required endpoints**
+- [x] **Step 1: Add failing route tests for all required endpoints**
 
 Must cover:
 
@@ -373,12 +373,12 @@ Must assert:
 - authenticated list returns owner-only items
 - cross-user detail -> `404 not_found`
 
-- [ ] **Step 2: Run tests and confirm fail first**
+- [x] **Step 2: Run tests and confirm fail first**
 
 Run: `bun test src/__tests__/phase2/links-api-routes.test.ts`  
 Expected: FAIL before implementation.
 
-- [ ] **Step 3: Implement routes with principal guard and shared error helper**
+- [x] **Step 3: Implement routes with principal guard and shared error helper**
 
 Requirements:
 
@@ -386,7 +386,7 @@ Requirements:
 - owner always derived from principal
 - standardized error envelope through helper
 
-- [ ] **Step 4: Re-run links route tests**
+- [x] **Step 4: Re-run links route tests**
 
 Run: `bun test src/__tests__/phase2/links-api-routes.test.ts`  
 Expected: PASS.
