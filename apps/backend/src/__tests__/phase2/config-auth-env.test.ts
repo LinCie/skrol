@@ -97,4 +97,25 @@ describe("auth config env", () => {
       restoreEnv(snapshot);
     }
   });
+
+  it("rejects wildcard characters inside frontend origin values", async () => {
+    const snapshot = snapshotEnv();
+    const originalExit = process.exit;
+
+    try {
+      Object.assign(process.env, BASE_ENV, {
+        FRONTEND_ORIGINS: "https://*.example.com",
+      });
+      process.exit = ((code?: number) => {
+        throw new Error(`process.exit:${code ?? 0}`);
+      }) as typeof process.exit;
+
+      await expect(importConfig("wildcard-pattern-frontend-origin")).rejects.toThrow(
+        "process.exit:1",
+      );
+    } finally {
+      process.exit = originalExit;
+      restoreEnv(snapshot);
+    }
+  });
 });

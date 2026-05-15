@@ -40,7 +40,7 @@ function parseFrontendOrigins(value: string): string[] {
   }
 
   for (const origin of origins) {
-    if (origin === "*") {
+    if (origin.includes("*")) {
       throw new Error(
         "FRONTEND_ORIGINS cannot include wildcard origin when credentialed CORS is enabled.",
       );
