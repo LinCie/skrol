@@ -264,7 +264,7 @@ Expected: PASS.
 - Modify: `apps/backend/src/modules/auth/infrastructure/auth-session.service.impl.ts`
 - Test: `apps/backend/src/__tests__/phase2/user-profiles-defaulting.test.ts`
 
-- [ ] **Step 1: Add failing tests for dual-path behavior and role safety**
+- [x] **Step 1: Add failing tests for dual-path behavior and role safety**
 
 Required tests:
 
@@ -273,12 +273,12 @@ Required tests:
 - repeated ensure/backfill is idempotent
 - existing `admin` role is not overwritten
 
-- [ ] **Step 2: Run test and confirm fail first**
+- [x] **Step 2: Run test and confirm fail first**
 
 Run: `bun test src/__tests__/phase2/user-profiles-defaulting.test.ts`  
 Expected: FAIL.
 
-- [ ] **Step 3: Implement DI-friendly profile ensure logic**
+- [x] **Step 3: Implement DI-friendly profile ensure logic**
 
 Use one of:
 
@@ -287,7 +287,7 @@ Use one of:
 
 Do not hide DB acquisition in a way that makes tests brittle.
 
-- [ ] **Step 4: Hook ensure behavior into signup and session-resolution flow**
+- [x] **Step 4: Hook ensure behavior into signup and session-resolution flow**
 
 Required behavior:
 
@@ -295,14 +295,14 @@ Required behavior:
 - called as lazy backfill during session resolution
 - preferred signup profile creation mechanism: Better Auth `databaseHooks.user.create.after`, calling the same idempotent `ensureUserProfile(db, user.id)` used by lazy session backfill
 
-- [ ] **Step 4.5: Reconcile existing migration references before adding/adjusting FKs**
+- [x] **Step 4.5: Reconcile existing migration references before adding/adjusting FKs**
 
 Required check:
 
 - inspect existing skrol migrations for placeholder references such as `auth_users`
 - if present, reconcile against the actual Better Auth generated user table name, or intentionally avoid DB-level FK until generated schema boundary is stable
 
-- [ ] **Step 5: Re-run tests**
+- [x] **Step 5: Re-run tests**
 
 Run: `bun test src/__tests__/phase2/user-profiles-defaulting.test.ts`  
 Expected: PASS.

@@ -2,6 +2,10 @@ import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { getMigrations } from "better-auth/db/migration";
 import { Pool } from "pg";
 import { BETTER_AUTH_BASE_PATH } from "@/modules/auth/application/auth-paths";
+import {
+  UserProfilesRepository,
+  type EnsureUserProfile,
+} from "@/modules/users/infrastructure/user-profiles.repository";
 import config from "@/shared/config";
 
 export interface BetterAuthConfigOverrides {
@@ -9,6 +13,7 @@ export interface BetterAuthConfigOverrides {
   baseURL?: string;
   basePath?: string;
   secret?: string;
+  ensureUserProfile?: EnsureUserProfile;
 }
 
 function escapePostgresIdentifier(identifier: string): string {
@@ -30,7 +35,7 @@ export function createBetterAuthPool(
 export function createBetterAuthConfig(
   overrides: BetterAuthConfigOverrides,
 ): BetterAuthOptions {
-  return {
+  const authConfig: BetterAuthOptions = {
     baseURL: overrides.baseURL ?? config.betterAuthUrl,
     basePath: overrides.basePath ?? BETTER_AUTH_BASE_PATH,
     secret: overrides.secret ?? config.betterAuthSecret,
@@ -39,6 +44,23 @@ export function createBetterAuthConfig(
       enabled: true,
     },
   };
+
+  if (overrides.ensureUserProfile) {
+    return {
+      ...authConfig,
+      databaseHooks: {
+        user: {
+          create: {
+            after: async (user) => {
+              await overrides.ensureUserProfile?.(user.id);
+            },
+          },
+        },
+      },
+    };
+  }
+
+  return authConfig;
 }
 
 export function createBetterAuthInstance(overrides: BetterAuthConfigOverrides) {
@@ -50,6 +72,9 @@ export function createDefaultBetterAuthInstance() {
 
   return createBetterAuthInstance({
     database: pool,
+    ensureUserProfile: async (userId) => {
+      await new UserProfilesRepository().ensure(userId);
+    },
   });
 }
 
