@@ -228,19 +228,19 @@ Expected: PASS.
 - Modify: `apps/backend/src/index.ts`
 - Test: `apps/backend/src/__tests__/phase2/auth-native-routes.test.ts`
 
-- [ ] **Step 1: Add failing route tests that target native path boundary**
+- [x] **Step 1: Add failing route tests that target native path boundary**
 
 Tests should assert:
 
 - Better Auth endpoints are reachable under `/api/auth/*`
 - `/api/v1/auth/*` is not used for phase 2 auth behavior
 
-- [ ] **Step 2: Run test and confirm fail first**
+- [x] **Step 2: Run test and confirm fail first**
 
 Run: `bun test src/__tests__/phase2/auth-native-routes.test.ts`  
 Expected: FAIL before mount.
 
-- [ ] **Step 3: Implement Better Auth mount and config**
+- [x] **Step 3: Implement Better Auth mount and config**
 
 Requirements:
 
@@ -249,7 +249,7 @@ Requirements:
 - ensure cookies and session behavior are real
 - preserve `/api/v1/*` for product routes only
 
-- [ ] **Step 4: Re-run auth-native tests**
+- [x] **Step 4: Re-run auth-native tests**
 
 Run: `bun test src/__tests__/phase2/auth-native-routes.test.ts`  
 Expected: PASS.

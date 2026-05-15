@@ -17,14 +17,22 @@ import {
 import { getHealthStatus, type HealthStatus } from "@/health";
 import { RedirectModule } from "@/modules/redirect/redirect.module";
 import type { ResolveRedirectUseCase } from "@/modules/redirect/application/resolve-redirect.use-case";
+import { createDefaultBetterAuthInstance } from "@/modules/auth/infrastructure/better-auth.server";
+import {
+  mountBetterAuthRoutes,
+  type BetterAuthHandler,
+} from "@/modules/auth/presentation/routes/mount-better-auth";
 
 export interface CreateAppDependencies {
   getHealthStatus?: (databaseUrl: string) => Promise<HealthStatus>;
   resolveRedirectUseCase?: ResolveRedirectUseCase;
+  betterAuthHandler?: BetterAuthHandler;
 }
 
 export function createApp(deps: CreateAppDependencies = {}): Elysia {
   const healthStatusResolver = deps.getHealthStatus ?? getHealthStatus;
+  const betterAuthHandler =
+    deps.betterAuthHandler ?? createDefaultBetterAuthInstance().handler;
   const redirectModule = new RedirectModule({
     resolveRedirectUseCase: deps.resolveRedirectUseCase,
   });
@@ -43,6 +51,12 @@ export function createApp(deps: CreateAppDependencies = {}): Elysia {
     message: "Backend service is running",
     version: "1.0.0",
   }));
+
+  app.use(
+    mountBetterAuthRoutes({
+      handler: betterAuthHandler,
+    }),
+  );
 
   redirectModule.registerPublicRoutes(app);
 

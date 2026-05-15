@@ -1,9 +1,8 @@
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { getMigrations } from "better-auth/db/migration";
 import { Pool } from "pg";
+import { BETTER_AUTH_BASE_PATH } from "@/modules/auth/application/auth-paths";
 import config from "@/shared/config";
-
-export const BETTER_AUTH_BASE_PATH = "/api/auth" as const;
 
 export interface BetterAuthConfigOverrides {
   database: BetterAuthOptions["database"];
@@ -44,6 +43,14 @@ export function createBetterAuthConfig(
 
 export function createBetterAuthInstance(overrides: BetterAuthConfigOverrides) {
   return betterAuth(createBetterAuthConfig(overrides));
+}
+
+export function createDefaultBetterAuthInstance() {
+  const pool = createBetterAuthPool();
+
+  return createBetterAuthInstance({
+    database: pool,
+  });
 }
 
 export async function inspectBetterAuthSchema(
