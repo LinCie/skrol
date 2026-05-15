@@ -524,11 +524,11 @@ Expected: PASS.
 - Modify: backend app bootstrap/config files responsible for CORS/origin policy
 - Add/modify focused tests if CORS behavior is testable in repo harness
 
-- [ ] **Step 1: Add failing config/assertion tests where feasible**
+- [x] **Step 1: Add failing config/assertion tests where feasible**
 
 At minimum, validate app config does not allow wildcard origin with credentials.
 
-- [ ] **Step 2: Implement strict credentialed CORS/trusted-origin configuration**
+- [x] **Step 2: Implement strict credentialed CORS/trusted-origin configuration**
 
 Requirements:
 
@@ -536,7 +536,7 @@ Requirements:
 - `credentials: true`
 - no `origin: *` when credentials are enabled
 
-- [ ] **Step 3: Verify security posture**
+- [x] **Step 3: Verify security posture**
 
 Documented phase decision:
 
