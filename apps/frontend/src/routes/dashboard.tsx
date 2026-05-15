@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Outlet, createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { Link, Outlet, createFileRoute, redirect, useLocation, useNavigate } from '@tanstack/react-router'
 import { authClient } from '../lib/auth-client'
 
 export const Route = createFileRoute('/dashboard')({
@@ -20,6 +20,7 @@ export const Route = createFileRoute('/dashboard')({
 
 function Dashboard() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [error, setError] = useState<string | undefined>()
   const [isSigningOut, setIsSigningOut] = useState(false)
 
@@ -69,8 +70,24 @@ function Dashboard() {
       ) : null}
 
       <section className="py-10">
-        <Outlet />
+        {location.pathname === '/dashboard' ? <DashboardHome /> : <Outlet />}
       </section>
     </main>
+  )
+}
+
+function DashboardHome() {
+  return (
+    <div className="rounded-2xl border border-slate-200 p-8">
+      <h2 className="text-2xl font-bold tracking-tight text-slate-950">
+        Manage your short links
+      </h2>
+      <p className="mt-2 text-sm text-slate-600">
+        View existing links or create a new short link from your dashboard.
+      </p>
+      <Link className="mt-4 inline-flex font-medium text-slate-950 underline" to="/dashboard/links">
+        View links
+      </Link>
+    </div>
   )
 }

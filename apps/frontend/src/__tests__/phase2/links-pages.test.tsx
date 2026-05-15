@@ -62,6 +62,13 @@ describe('dashboard links pages', () => {
     vi.clearAllMocks()
   })
 
+  it('shows dashboard landing content with a links entry point', async () => {
+    renderAt('/dashboard')
+
+    expect(await screen.findByRole('heading', { name: /dashboard/i })).not.toBeNull()
+    expect(screen.getByRole('link', { name: /view links/i })).not.toBeNull()
+  })
+
   it('shows links empty state and fetches with credentials', async () => {
     const fetchMock = vi.mocked(fetch)
     fetchMock.mockResolvedValueOnce(
@@ -138,8 +145,10 @@ describe('dashboard links pages', () => {
     const createdLink = {
       id: 'link_123',
       short_url: 'https://skrol.test/docs',
+      code: 'docs',
       destination_url: 'https://example.com/docs',
-      alias: 'docs',
+      title: null,
+      status: 'active',
       created_at: '2026-05-16T10:00:00.000Z',
       expires_at: '2026-12-31T23:59:00.000Z',
     }
@@ -171,6 +180,31 @@ describe('dashboard links pages', () => {
           expires_at: new Date(localExpiration).toISOString(),
         }),
       })
+    })
+  })
+
+  it('shows successful detail state with backend link code', async () => {
+    const fetchMock = vi.mocked(fetch)
+    fetchMock.mockResolvedValueOnce(
+      await mockJsonResponse({
+        id: 'link_123',
+        short_url: 'https://skrol.test/docs',
+        code: 'docs',
+        destination_url: 'https://example.com/docs',
+        title: 'Docs',
+        status: 'active',
+        created_at: '2026-05-16T10:00:00.000Z',
+        expires_at: null,
+      }),
+    )
+
+    renderAt('/dashboard/links/link_123')
+
+    expect(await screen.findByRole('heading', { name: /https:\/\/skrol\.test\/docs/i })).not.toBeNull()
+    expect(screen.getByText('docs')).not.toBeNull()
+    expect(screen.getByText('https://example.com/docs')).not.toBeNull()
+    expect(fetchMock).toHaveBeenCalledWith('/api/v1/links/link_123', {
+      credentials: 'include',
     })
   })
 

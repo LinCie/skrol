@@ -3,8 +3,10 @@ import { buildQueryString } from './query-string'
 export type LinkDto = {
   id: string
   short_url: string
+  code: string
   destination_url: string
-  alias: string | null
+  title: string | null
+  status: string
   created_at: string
   expires_at: string | null
 }

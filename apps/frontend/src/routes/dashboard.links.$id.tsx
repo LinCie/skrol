@@ -93,8 +93,8 @@ function LinkDetailPage() {
           <dd className="mt-1 break-all text-slate-950">{link.destination_url}</dd>
         </div>
         <div>
-          <dt className="text-sm font-medium text-slate-500">Alias</dt>
-          <dd className="mt-1 text-slate-950">{link.alias || 'Generated'}</dd>
+          <dt className="text-sm font-medium text-slate-500">Short code</dt>
+          <dd className="mt-1 text-slate-950">{link.code}</dd>
         </div>
         <div>
           <dt className="text-sm font-medium text-slate-500">Created</dt>
