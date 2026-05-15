@@ -320,7 +320,7 @@ Expected: PASS.
 - Modify: `apps/backend/src/modules/links/links.module.ts`
 - Test: owner-scoped use-case and repository tests
 
-- [ ] **Step 1: Add failing tests that prove real ownership filtering**
+- [x] **Step 1: Add failing tests that prove real ownership filtering**
 
 Avoid fake stubs like `[{ id: "1", userId: owner }]` that echo input and hide bugs.
 
@@ -329,12 +329,12 @@ Use either:
 - seeded integration data, or
 - strict fakes with explicit user_a/user_b records and assertions
 
-- [ ] **Step 2: Run test and confirm fail first**
+- [x] **Step 2: Run test and confirm fail first**
 
 Run: relevant backend phase2 tests  
 Expected: FAIL before contracts/impl.
 
-- [ ] **Step 3: Extend repository contracts and implement queries**
+- [x] **Step 3: Extend repository contracts and implement queries**
 
 Required methods:
 
@@ -345,7 +345,7 @@ ID assumptions:
 
 - `links.id` is UUID; fixtures should use UUID-like values.
 
-- [ ] **Step 4: Re-run tests**
+- [x] **Step 4: Re-run tests**
 
 Expected: PASS.
 
