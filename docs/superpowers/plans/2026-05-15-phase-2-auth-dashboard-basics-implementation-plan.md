@@ -166,7 +166,7 @@ Confirm:
 - Create: `apps/backend/src/modules/shared/presentation/api-error.ts`
 - Test: `apps/backend/src/__tests__/phase2/session-guard.test.ts`
 
-- [ ] **Step 1: Add failing guard tests with correct interface contract**
+- [x] **Step 1: Add failing guard tests with correct interface contract**
 
 ```ts
 import { describe, expect, it, mock } from "bun:test";
@@ -188,12 +188,12 @@ describe("requireSession", () => {
 });
 ```
 
-- [ ] **Step 2: Run test and confirm fail first**
+- [x] **Step 2: Run test and confirm fail first**
 
 Run: `bun test src/__tests__/phase2/session-guard.test.ts`  
 Expected: FAIL.
 
-- [ ] **Step 3: Implement principal type + guard + shared error helper**
+- [x] **Step 3: Implement principal type + guard + shared error helper**
 
 Required behavior:
 
@@ -211,7 +211,7 @@ Required behavior:
 
 - guard short-circuits protected handlers
 
-- [ ] **Step 4: Re-run guard tests**
+- [x] **Step 4: Re-run guard tests**
 
 Run: `bun test src/__tests__/phase2/session-guard.test.ts`  
 Expected: PASS.
