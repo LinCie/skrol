@@ -94,16 +94,16 @@ function parseCreateLinkBody(body: unknown):
 	}
 
 	const record = body as Record<string, unknown>;
-	if (typeof record.destinationUrl !== "string") {
+	if (typeof record.url !== "string") {
 		return null;
 	}
 
 	return {
-		destinationUrl: record.destinationUrl,
+		destinationUrl: record.url,
 		alias: typeof record.alias === "string" ? record.alias : undefined,
 		title: typeof record.title === "string" ? record.title : undefined,
 		expiresAt:
-			typeof record.expiresAt === "string" ? new Date(record.expiresAt) : null,
+			typeof record.expires_at === "string" ? new Date(record.expires_at) : null,
 	};
 }
 

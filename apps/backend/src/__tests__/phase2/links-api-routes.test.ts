@@ -28,17 +28,19 @@ describe("Phase 2 links API routes", () => {
 		});
 	});
 
-	it("creates a link for the session principal and ignores any requested owner", async () => {
+	it("creates a link from documented body fields for the session principal", async () => {
 		const fakes = createLinksApiTestApp({ principalUserId: ownerA });
+		const expiresAt = "2026-12-31T23:59:59.000Z";
 
 		const response = await fakes.app.handle(
 			new Request("http://localhost/api/v1/links", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
-					destinationUrl: "https://example.com/docs",
+					url: "https://example.com/docs",
 					alias: "Docs",
 					title: "Docs",
+					expires_at: expiresAt,
 					ownerUserId: ownerB,
 				}),
 			}),
@@ -52,7 +54,7 @@ describe("Phase 2 links API routes", () => {
 				destinationUrl: "https://example.com/docs",
 				alias: "Docs",
 				title: "Docs",
-				expiresAt: null,
+				expiresAt: new Date(expiresAt),
 			},
 		]);
 		expect(await response.json()).toMatchObject({

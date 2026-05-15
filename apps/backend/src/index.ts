@@ -26,6 +26,9 @@ import {
 } from "@/modules/auth/presentation/routes/mount-better-auth";
 import { LinksModule } from "@/modules/links/links.module";
 import { linksApiRoutes } from "@/modules/links/presentation/routes/links-api.routes";
+import type { CreateLinkInput } from "@/modules/links/application/create-link.use-case";
+import type { ListLinksInput } from "@/modules/links/application/list-links.use-case";
+import type { GetLinkDetailInput } from "@/modules/links/application/get-link-detail.use-case";
 import { UserProfilesRepository } from "@/modules/users/infrastructure/user-profiles.repository";
 
 export interface CreateAppDependencies {
@@ -60,8 +63,7 @@ export function createApp(deps: CreateAppDependencies = {}): Elysia {
           },
         )
       : { resolveFromRequest: async () => null });
-  const linksModule = deps.linksModule ??
-    (betterAuthInstance ? new LinksModule() : createUnconfiguredLinksModule());
+  const linksModule = deps.linksModule ?? createLazyLinksModule();
   const redirectModule = new RedirectModule({
     resolveRedirectUseCase: deps.resolveRedirectUseCase,
   });
@@ -114,18 +116,29 @@ export function createApp(deps: CreateAppDependencies = {}): Elysia {
   return app;
 }
 
-function createUnconfiguredLinksModule(): Pick<
+function createLazyLinksModule(): Pick<
   LinksModule,
   "createLinkUseCase" | "listLinksUseCase" | "getLinkDetailUseCase"
 > {
-  const fail = async () => {
-    throw new Error("Links module is not configured.");
+  let module: LinksModule | null = null;
+  const getModule = () => {
+    module ??= new LinksModule();
+    return module;
   };
 
   return {
-    createLinkUseCase: { execute: fail },
-    listLinksUseCase: { execute: fail },
-    getLinkDetailUseCase: { execute: fail },
+    createLinkUseCase: {
+      execute: async (input: CreateLinkInput) =>
+        getModule().createLinkUseCase.execute(input),
+    },
+    listLinksUseCase: {
+      execute: async (input: ListLinksInput) =>
+        getModule().listLinksUseCase.execute(input),
+    },
+    getLinkDetailUseCase: {
+      execute: async (input: GetLinkDetailInput) =>
+        getModule().getLinkDetailUseCase.execute(input),
+    },
   } as never;
 }
 
