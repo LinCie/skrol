@@ -12,6 +12,8 @@ const ownerAFirstId = "11111111-1111-4111-8111-111111111111";
 const ownerASecondId = "22222222-2222-4222-8222-222222222222";
 const ownerBId = "33333333-3333-4333-8333-333333333333";
 const deletedOwnerAId = "44444444-4444-4444-8444-444444444444";
+const sharedTimestampHighId = "99999999-9999-4999-8999-999999999999";
+const sharedTimestampLowId = "88888888-8888-4888-8888-888888888888";
 
 const fixtureLinks = [
 	linkFixture({
@@ -145,6 +147,41 @@ describe("LinksRepositoryImpl owner-scoped queries", () => {
 		expect(result.items.map((link) => link.id)).toEqual([ownerAFirstId]);
 		expect(result.nextCursor).toBeNull();
 	});
+
+	it("paginates same-timestamp owned links without skipping or duplicating", async () => {
+		const sameTimestamp = new Date("2026-05-15T12:05:00.000Z");
+		const repository = new LinksRepositoryImpl(
+			new StrictKyselyFake([
+				linkFixture({
+					id: sharedTimestampHighId,
+					userId: ownerA,
+					code: "shared-high",
+					createdAt: sameTimestamp,
+				}),
+				linkFixture({
+					id: sharedTimestampLowId,
+					userId: ownerA,
+					code: "shared-low",
+					createdAt: sameTimestamp,
+				}),
+			]) as never,
+		);
+
+		const firstPage = await repository.listByOwner({
+			ownerUserId: ownerA,
+			limit: 1,
+		});
+		const secondPage = await repository.listByOwner({
+			ownerUserId: ownerA,
+			limit: 1,
+			cursor: firstPage.nextCursor ?? undefined,
+		});
+		const returnedIds = [firstPage.items[0]?.id, secondPage.items[0]?.id];
+
+		expect(returnedIds).toEqual([sharedTimestampHighId, sharedTimestampLowId]);
+		expect(new Set(returnedIds).size).toBe(2);
+		expect(secondPage.nextCursor).toBeNull();
+	});
 });
 
 function linkFixture(input: {
@@ -237,30 +274,48 @@ class StrictKyselyFake {
 }
 
 type WhereOperator = "=" | "is" | "<";
+type RowPredicate = (row: Link) => boolean;
 
 class StrictSelectQueryFake {
 	private rows: Link[];
-	private selectedIdOnly = false;
+	private selectedFields: string[] | null = null;
+	private readonly orderings: Array<{ column: string; direction: string }> = [];
+	private limitCount: number | null = null;
 
 	constructor(rows: Link[]) {
 		this.rows = rows;
 	}
 
-	select(selection: string): this {
-		if (selection !== "id" && selection !== "createdAt") {
-			throw new Error(`unexpected selection ${selection}`);
+	select(selection: string | string[]): this {
+		const selections = Array.isArray(selection) ? selection : [selection];
+		for (const field of selections) {
+			if (field !== "id" && field !== "createdAt") {
+				throw new Error(`unexpected selection ${field}`);
+			}
 		}
 
-		this.selectedIdOnly = selection === "id";
+		this.selectedFields = selections;
 		return this;
 	}
 
 	selectAll(): this {
-		this.selectedIdOnly = false;
+		this.selectedFields = null;
 		return this;
 	}
 
-	where(column: string, operator: WhereOperator, value: string | Date | null): this {
+	where(
+		columnOrExpression: string | ((builder: StrictExpressionBuilder) => RowPredicate),
+		operator?: WhereOperator,
+		value?: string | Date | null,
+	): this {
+		if (typeof columnOrExpression === "function") {
+			const predicate = columnOrExpression(createStrictExpressionBuilder());
+			this.rows = this.rows.filter(predicate);
+			return this;
+		}
+
+		const column = columnOrExpression;
+
 		if (operator === "=" && column === "userId" && typeof value === "string") {
 			this.rows = this.rows.filter((row) => row.userId === value);
 			return this;
@@ -287,24 +342,116 @@ class StrictSelectQueryFake {
 	}
 
 	orderBy(column: string, direction: string): this {
-		if (column !== "createdAt" || direction !== "desc") {
+		if ((column !== "createdAt" && column !== "id") || direction !== "desc") {
 			throw new Error(`unexpected order ${column} ${direction}`);
 		}
 
-		this.rows.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+		this.orderings.push({ column, direction });
 		return this;
 	}
 
 	limit(count: number): this {
-		this.rows = this.rows.slice(0, count);
+		this.limitCount = count;
 		return this;
 	}
 
-	async execute(): Promise<Array<Link | { id: string }>> {
-		return this.selectedIdOnly ? this.rows.map((row) => ({ id: row.id })) : this.rows;
+	async execute(): Promise<Array<Link | Partial<Link>>> {
+		let rows = [...this.rows];
+		rows.sort((a, b) => {
+			for (const ordering of this.orderings) {
+				const comparison = compareLinkRows(a, b, ordering.column);
+				if (comparison !== 0) {
+					return ordering.direction === "desc" ? -comparison : comparison;
+				}
+			}
+
+			return 0;
+		});
+
+		if (this.limitCount !== null) {
+			rows = rows.slice(0, this.limitCount);
+		}
+
+		if (!this.selectedFields) {
+			return rows;
+		}
+
+		return rows.map((row) =>
+			Object.fromEntries(
+				this.selectedFields?.map((field) => [field, row[field as keyof Link]]) ?? [],
+			),
+		) as Array<Partial<Link>>;
 	}
 
-	async executeTakeFirst(): Promise<Link | { id: string } | undefined> {
+	async executeTakeFirst(): Promise<Link | Partial<Link> | undefined> {
 		return (await this.execute())[0];
 	}
+}
+
+interface StrictExpressionBuilder {
+	eb: StrictExpressionBuilder["compare"];
+	compare: (
+		column: "createdAt" | "id",
+		operator: "=" | "<",
+		value: Date | string,
+	) => RowPredicate;
+	or: (predicates: RowPredicate[]) => RowPredicate;
+	and: (predicates: RowPredicate[]) => RowPredicate;
+}
+
+function createStrictExpressionBuilder(): StrictExpressionBuilder {
+	const builder = {
+		compare: (
+			column: "createdAt" | "id",
+			operator: "=" | "<",
+			value: Date | string,
+		): RowPredicate => {
+			if (column === "createdAt" && value instanceof Date) {
+				return (row) => compareDates(row.createdAt, value, operator);
+			}
+
+			if (column === "id" && typeof value === "string") {
+				return (row) => compareStrings(row.id, value, operator);
+			}
+
+			throw new Error(`unexpected expression ${column} ${operator} ${value}`);
+		},
+		or: (predicates: RowPredicate[]): RowPredicate =>
+			(row) => predicates.some((predicate) => predicate(row)),
+		and: (predicates: RowPredicate[]): RowPredicate =>
+			(row) => predicates.every((predicate) => predicate(row)),
+	};
+
+	return {
+		eb: builder.compare,
+		...builder,
+	};
+}
+
+function compareLinkRows(a: Link, b: Link, column: string): number {
+	if (column === "createdAt") {
+		return a.createdAt.getTime() - b.createdAt.getTime();
+	}
+
+	if (column === "id") {
+		return a.id.localeCompare(b.id);
+	}
+
+	throw new Error(`unexpected compare column ${column}`);
+}
+
+function compareDates(left: Date, right: Date, operator: "=" | "<"): boolean {
+	if (operator === "=") {
+		return left.getTime() === right.getTime();
+	}
+
+	return left.getTime() < right.getTime();
+}
+
+function compareStrings(left: string, right: string, operator: "=" | "<"): boolean {
+	if (operator === "=") {
+		return left === right;
+	}
+
+	return left < right;
 }

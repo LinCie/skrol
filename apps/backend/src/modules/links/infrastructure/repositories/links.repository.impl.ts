@@ -55,7 +55,7 @@ export class LinksRepositoryImpl implements LinksRepository {
 		if (input.cursor) {
 			const cursorRow = await this.db
 				.selectFrom("links")
-				.select("createdAt")
+				.select(["id", "createdAt"])
 				.where("id", "=", input.cursor)
 				.where("userId", "=", input.ownerUserId)
 				.where("deletedAt", "is", null)
@@ -65,11 +65,20 @@ export class LinksRepositoryImpl implements LinksRepository {
 				return { items: [], nextCursor: null };
 			}
 
-			query = query.where("createdAt", "<", cursorRow.createdAt);
+			query = query.where(({ eb, or, and }) =>
+				or([
+					eb("createdAt", "<", cursorRow.createdAt),
+					and([
+						eb("createdAt", "=", cursorRow.createdAt),
+						eb("id", "<", cursorRow.id),
+					]),
+				]),
+			);
 		}
 
 		const rows = await query
 			.orderBy("createdAt", "desc")
+			.orderBy("id", "desc")
 			.limit(input.limit + 1)
 			.execute();
 		const items = rows.slice(0, input.limit).map((row) => Link.create(row));
