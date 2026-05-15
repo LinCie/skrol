@@ -87,9 +87,9 @@ async function productFetch<T>(path: string, init: RequestInit = {}) {
 }
 
 function resolveProductApiUrl(path: string) {
-  const baseUrl = (
-    import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_AUTH_BASE_URL
-  )?.trim()
+  const baseUrl = [import.meta.env.VITE_API_BASE_URL, import.meta.env.VITE_AUTH_BASE_URL]
+    .map((value) => value?.trim())
+    .find(Boolean)
 
   if (!baseUrl) {
     return path

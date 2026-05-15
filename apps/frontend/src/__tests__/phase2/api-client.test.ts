@@ -45,6 +45,17 @@ describe('product API client origin resolution', () => {
     })
   })
 
+  it('skips blank VITE_API_BASE_URL before falling back to VITE_AUTH_BASE_URL', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', '   ')
+    vi.stubEnv('VITE_AUTH_BASE_URL', 'http://localhost:8000')
+
+    await listLinks()
+
+    expect(fetch).toHaveBeenCalledWith('http://localhost:8000/api/v1/links?limit=20', {
+      credentials: 'include',
+    })
+  })
+
   it('keeps same-origin relative paths when no backend origin env is configured', async () => {
     vi.stubEnv('VITE_API_BASE_URL', '')
     vi.stubEnv('VITE_AUTH_BASE_URL', '')
