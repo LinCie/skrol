@@ -6,6 +6,7 @@
 import { Elysia } from "elysia";
 import config from "@/shared/config";
 import { logger } from "@/shared/presentation/logging/logger";
+import { registerCredentialedCors } from "@/shared/presentation/cors";
 import {
   initializeDatabase,
   closeDatabase,
@@ -69,6 +70,7 @@ export function createApp(deps: CreateAppDependencies = {}): Elysia {
   });
 
   const app = new Elysia();
+  registerCredentialedCors(app, { allowedOrigins: config.frontendOrigins });
 
   app.get("/health", async () => {
     const health = await healthStatusResolver(config.databaseUrl);

@@ -39,6 +39,7 @@ export function createBetterAuthConfig(
     baseURL: overrides.baseURL ?? config.betterAuthUrl,
     basePath: overrides.basePath ?? BETTER_AUTH_BASE_PATH,
     secret: overrides.secret ?? config.betterAuthSecret,
+    trustedOrigins: config.frontendOrigins,
     database: overrides.database,
     emailAndPassword: {
       enabled: true,

@@ -10,6 +10,7 @@ interface Config {
   redisUrl: string;
   betterAuthUrl: string;
   betterAuthSecret: string;
+  frontendOrigins: string[];
   sentryDsn?: string;
 }
 
@@ -28,6 +29,36 @@ function getEnvOptional(
   return process.env[key] ?? defaultValue;
 }
 
+function parseFrontendOrigins(value: string): string[] {
+  const origins = value
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  if (origins.length === 0) {
+    throw new Error("FRONTEND_ORIGINS must include at least one origin.");
+  }
+
+  for (const origin of origins) {
+    if (origin === "*") {
+      throw new Error(
+        "FRONTEND_ORIGINS cannot include wildcard origin when credentialed CORS is enabled.",
+      );
+    }
+
+    try {
+      const parsed = new URL(origin);
+      if (parsed.origin !== origin || !["http:", "https:"].includes(parsed.protocol)) {
+        throw new Error("invalid origin");
+      }
+    } catch {
+      throw new Error(`Invalid FRONTEND_ORIGINS entry: ${origin}`);
+    }
+  }
+
+  return Array.from(new Set(origins));
+}
+
 export function loadConfig(): Config {
   try {
     const config: Config = {
@@ -37,6 +68,10 @@ export function loadConfig(): Config {
       redisUrl: getEnv("REDIS_URL"),
       betterAuthUrl: getEnv("BETTER_AUTH_URL"),
       betterAuthSecret: getEnv("BETTER_AUTH_SECRET"),
+      frontendOrigins: parseFrontendOrigins(
+        getEnvOptional("FRONTEND_ORIGINS", "http://localhost:5173,https://skrol.ink") ??
+          "",
+      ),
       sentryDsn: getEnvOptional("SENTRY_DSN"),
     };
 

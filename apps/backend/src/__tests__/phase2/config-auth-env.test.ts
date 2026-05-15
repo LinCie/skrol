@@ -7,6 +7,7 @@ const BASE_ENV = {
   REDIS_URL: "redis://localhost:6379",
   BETTER_AUTH_URL: "http://localhost:3000",
   BETTER_AUTH_SECRET: "test-secret",
+  FRONTEND_ORIGINS: "http://localhost:5173,https://app.skrol.local",
 };
 
 function snapshotEnv() {
@@ -17,6 +18,7 @@ function snapshotEnv() {
     REDIS_URL: process.env.REDIS_URL,
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+    FRONTEND_ORIGINS: process.env.FRONTEND_ORIGINS,
   };
 }
 
@@ -27,6 +29,7 @@ function restoreEnv(snapshot: ReturnType<typeof snapshotEnv>) {
   process.env.REDIS_URL = snapshot.REDIS_URL;
   process.env.BETTER_AUTH_URL = snapshot.BETTER_AUTH_URL;
   process.env.BETTER_AUTH_SECRET = snapshot.BETTER_AUTH_SECRET;
+  process.env.FRONTEND_ORIGINS = snapshot.FRONTEND_ORIGINS;
 }
 
 async function importConfig(tag: string) {
@@ -65,7 +68,32 @@ describe("auth config env", () => {
 
       expect(config.betterAuthUrl).toBe("http://localhost:3000");
       expect(config.betterAuthSecret).toBe("test-secret");
+      expect(config.frontendOrigins).toEqual([
+        "http://localhost:5173",
+        "https://app.skrol.local",
+      ]);
     } finally {
+      restoreEnv(snapshot);
+    }
+  });
+
+  it("rejects wildcard frontend origins for credentialed CORS", async () => {
+    const snapshot = snapshotEnv();
+    const originalExit = process.exit;
+
+    try {
+      Object.assign(process.env, BASE_ENV, {
+        FRONTEND_ORIGINS: "*",
+      });
+      process.exit = ((code?: number) => {
+        throw new Error(`process.exit:${code ?? 0}`);
+      }) as typeof process.exit;
+
+      await expect(importConfig("wildcard-frontend-origin")).rejects.toThrow(
+        "process.exit:1",
+      );
+    } finally {
+      process.exit = originalExit;
       restoreEnv(snapshot);
     }
   });
