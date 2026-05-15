@@ -138,6 +138,7 @@ describe("Phase 2 links API routes", () => {
 		for (const expiresAt of [
 			"2999-12-31T18:59:59-05:00",
 			"2999-12-31T23:59:59.0Z",
+			"2999-12-31t23:59:59z",
 		]) {
 			const response = await fakes.app.handle(
 				new Request("http://localhost/api/v1/links", {
@@ -154,6 +155,7 @@ describe("Phase 2 links API routes", () => {
 		}
 
 		expect(fakes.createInputs.map((input) => input.expiresAt)).toEqual([
+			new Date("2999-12-31T23:59:59.000Z"),
 			new Date("2999-12-31T23:59:59.000Z"),
 			new Date("2999-12-31T23:59:59.000Z"),
 		]);
