@@ -52,7 +52,7 @@ describe("Phase 2 links API routes", () => {
 				ownerUserId: ownerA,
 				actorApiKeyId: null,
 				destinationUrl: "https://example.com/docs",
-				alias: "Docs",
+				alias: "docs",
 				title: "Docs",
 				expiresAt: new Date(expiresAt),
 			},
@@ -103,6 +103,60 @@ describe("Phase 2 links API routes", () => {
 		}
 
 		expect(fakes.createInputs).toEqual([]);
+	});
+
+	it("rejects invalid aliases before creating a link", async () => {
+		const fakes = createLinksApiTestApp({ principalUserId: ownerA });
+
+		for (const alias of [123, "", "no", "bad alias"]) {
+			const response = await fakes.app.handle(
+				new Request("http://localhost/api/v1/links", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						url: "https://example.com/docs",
+						alias,
+					}),
+				}),
+			);
+
+			expect(response.status).toBe(400);
+			expect(await response.json()).toEqual({
+				error: {
+					code: "validation_error",
+					message: "Invalid link request.",
+				},
+			});
+		}
+
+		expect(fakes.createInputs).toEqual([]);
+	});
+
+	it("accepts future RFC3339 expires_at offsets and fractional seconds", async () => {
+		const fakes = createLinksApiTestApp({ principalUserId: ownerA });
+
+		for (const expiresAt of [
+			"2999-12-31T18:59:59-05:00",
+			"2999-12-31T23:59:59.0Z",
+		]) {
+			const response = await fakes.app.handle(
+				new Request("http://localhost/api/v1/links", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						url: "https://example.com/docs",
+						expires_at: expiresAt,
+					}),
+				}),
+			);
+
+			expect(response.status).toBe(201);
+		}
+
+		expect(fakes.createInputs.map((input) => input.expiresAt)).toEqual([
+			new Date("2999-12-31T23:59:59.000Z"),
+			new Date("2999-12-31T23:59:59.000Z"),
+		]);
 	});
 
 	it("lists only links owned by the session principal", async () => {

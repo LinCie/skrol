@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import type { AuthSessionService } from "@/modules/auth/application/auth-session.service";
 import { requireSession } from "@/modules/auth/presentation/session-guard";
+import { normalizeAlias } from "@/modules/links/domain/alias-policy";
 import type { Link } from "@/modules/links/domain/link.entity";
 import type { LinksModule } from "@/modules/links/links.module";
 import { apiError } from "@/modules/shared/presentation/api-error";
@@ -13,6 +14,8 @@ export interface LinksApiRoutesDependencies {
 	>;
 }
 
+const API_ALIAS_REGEX = /^[a-z0-9_-]{3,64}$/;
+
 export function linksApiRoutes(deps: LinksApiRoutesDependencies) {
 	return new Elysia({ name: "links.api-routes" })
 		.use(requireSession(deps.authSessionService))
@@ -22,7 +25,7 @@ export function linksApiRoutes(deps: LinksApiRoutesDependencies) {
 			}
 
 			const createBody = parseCreateLinkBody(body);
-			if (!createBody) {
+			if (!createBody.ok) {
 				return apiError(400, "validation_error", "Invalid link request.");
 			}
 
@@ -76,6 +79,16 @@ export function linksApiRoutes(deps: LinksApiRoutesDependencies) {
 		});
 }
 
+type ParseCreateLinkBodyResult =
+	| {
+			ok: true;
+			destinationUrl: string;
+			alias?: string;
+			title?: string;
+			expiresAt: Date | null;
+	  }
+	| { ok: false };
+
 function toLinkDto(link: Link, request: Request) {
 	return {
 		id: link.id,
@@ -98,34 +111,46 @@ function parseLimit(value: string | null): number {
 	return Math.min(Math.floor(parsed), 100);
 }
 
-function parseCreateLinkBody(body: unknown):
-	| {
-			destinationUrl: string;
-			alias?: string;
-			title?: string;
-			expiresAt: Date | null;
-	  }
-	| null {
+function parseCreateLinkBody(body: unknown): ParseCreateLinkBodyResult {
 	if (!body || typeof body !== "object") {
-		return null;
+		return { ok: false };
 	}
 
 	const record = body as Record<string, unknown>;
 	if (typeof record.url !== "string") {
-		return null;
+		return { ok: false };
 	}
 
 	const expiresAt = parseExpiresAt(record.expires_at);
 	if (expiresAt === false) {
-		return null;
+		return { ok: false };
+	}
+
+	const alias = parseAlias(record.alias);
+	if (alias === false) {
+		return { ok: false };
 	}
 
 	return {
+		ok: true,
 		destinationUrl: record.url,
-		alias: typeof record.alias === "string" ? record.alias : undefined,
+		alias,
 		title: typeof record.title === "string" ? record.title : undefined,
 		expiresAt,
 	};
+}
+
+function parseAlias(value: unknown): string | undefined | false {
+	if (value === undefined) {
+		return undefined;
+	}
+
+	if (typeof value !== "string") {
+		return false;
+	}
+
+	const alias = normalizeAlias(value);
+	return API_ALIAS_REGEX.test(alias) ? alias : false;
 }
 
 function parseExpiresAt(value: unknown): Date | null | false {
@@ -140,7 +165,7 @@ function parseExpiresAt(value: unknown): Date | null | false {
 	const expiresAt = new Date(value);
 	if (
 		!Number.isFinite(expiresAt.getTime()) ||
-		!isStrictUtcTimestamp(value, expiresAt) ||
+		!isValidRfc3339Timestamp(value) ||
 		expiresAt <= new Date()
 	) {
 		return false;
@@ -149,11 +174,33 @@ function parseExpiresAt(value: unknown): Date | null | false {
 	return expiresAt;
 }
 
-function isStrictUtcTimestamp(value: string, parsed: Date): boolean {
-	const normalized = value.replace(/\.000Z$/, "Z");
-	const parsedNormalized = parsed.toISOString().replace(/\.000Z$/, "Z");
+function isValidRfc3339Timestamp(value: string): boolean {
+	const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.exec(
+		value,
+	);
+	if (!match) {
+		return false;
+	}
 
-	return normalized === parsedNormalized;
+	const [, yearValue, monthValue, dayValue, hourValue, minuteValue, secondValue] =
+		match;
+	const year = Number(yearValue);
+	const month = Number(monthValue);
+	const day = Number(dayValue);
+	const hour = Number(hourValue);
+	const minute = Number(minuteValue);
+	const second = Number(secondValue);
+	const maxDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+
+	return (
+		month >= 1 &&
+		month <= 12 &&
+		day >= 1 &&
+		day <= maxDay &&
+		hour <= 23 &&
+		minute <= 59 &&
+		second <= 59
+	);
 }
 
 function createLinkError(code: string): Response {
