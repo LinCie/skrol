@@ -63,7 +63,9 @@ export function loadConfig(): Config {
   try {
     const env = getEnv("NODE_ENV", "development");
     const defaultFrontendOrigins =
-      env === "production" ? "https://skrol.ink" : "http://localhost:5173,https://skrol.ink";
+      env === "production"
+        ? "https://skrol.ink"
+        : "http://localhost:3000,http://localhost:5173,https://skrol.ink";
     const config: Config = {
       env,
       port: parseInt(getEnv("PORT", "3000"), 10),

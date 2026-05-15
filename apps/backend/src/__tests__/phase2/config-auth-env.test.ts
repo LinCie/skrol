@@ -90,6 +90,7 @@ describe("auth config env", () => {
       const config = loadConfig();
 
       expect(config.frontendOrigins).toEqual(["https://skrol.ink"]);
+      expect(config.frontendOrigins).not.toContain("http://localhost:3000");
       expect(config.frontendOrigins).not.toContain("http://localhost:5173");
     } finally {
       restoreEnv(snapshot);
@@ -109,6 +110,7 @@ describe("auth config env", () => {
       const config = loadConfig();
 
       expect(config.frontendOrigins).toEqual([
+        "http://localhost:3000",
         "http://localhost:5173",
         "https://skrol.ink",
       ]);

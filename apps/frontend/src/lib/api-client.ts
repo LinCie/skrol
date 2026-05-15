@@ -64,7 +64,7 @@ export async function getLink(id: string) {
 }
 
 async function productFetch<T>(path: string, init: RequestInit = {}) {
-  const response = await fetch(path, {
+  const response = await fetch(resolveProductApiUrl(path), {
     ...init,
     credentials: 'include',
   })
@@ -84,4 +84,16 @@ async function productFetch<T>(path: string, init: RequestInit = {}) {
   }
 
   return body as T
+}
+
+function resolveProductApiUrl(path: string) {
+  const baseUrl = (
+    import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_AUTH_BASE_URL
+  )?.trim()
+
+  if (!baseUrl) {
+    return path
+  }
+
+  return `${baseUrl.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`
 }
