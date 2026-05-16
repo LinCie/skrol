@@ -17,6 +17,7 @@
     "deploy": "bun run build && wrangler deploy"
   },
   "dependencies": {
+    "@better-auth/api-key": "^1.6.11",
     "@cloudflare/vite-plugin": "^1.26.0",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-devtools": "latest",

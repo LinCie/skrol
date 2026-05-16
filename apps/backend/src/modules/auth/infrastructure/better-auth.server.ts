@@ -1,5 +1,6 @@
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { getMigrations } from "better-auth/db/migration";
+import { apiKey } from "@better-auth/api-key";
 import { Pool } from "pg";
 import { BETTER_AUTH_BASE_PATH } from "@/modules/auth/application/auth-paths";
 import {
@@ -44,6 +45,11 @@ export function createBetterAuthConfig(
     emailAndPassword: {
       enabled: true,
     },
+    plugins: [
+      apiKey({
+        defaultPrefix: "sk_live_",
+      }),
+    ],
   };
 
   if (overrides.ensureUserProfile) {
