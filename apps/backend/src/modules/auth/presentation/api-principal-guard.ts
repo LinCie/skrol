@@ -12,9 +12,10 @@ export function requireApiPrincipal(deps: {
 		.decorate("authPrincipal", null as AuthPrincipal | null)
 		.onBeforeHandle({ as: "scoped" }, async (context) => {
 			const authorization = context.request.headers.get("authorization") ?? "";
+			const bearerMatch = /^Bearer\s+/i.exec(authorization);
 
-			if (authorization.startsWith("Bearer ")) {
-				const key = authorization.slice("Bearer ".length).trim();
+			if (bearerMatch) {
+				const key = authorization.slice(bearerMatch[0].length).trim();
 				const verified = key
 					? await deps.apiKeyService.verify(key)
 					: ({ valid: false } as const);
