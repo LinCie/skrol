@@ -1,9 +1,5 @@
 import { describe, expect, it } from "bun:test";
 import { Pool } from "pg";
-import {
-  createBetterAuthConfig,
-  inspectBetterAuthSchema,
-} from "../../modules/auth/infrastructure/better-auth.server";
 
 function requireDatabaseUrl(): string | null {
   return process.env.DATABASE_URL ?? null;
@@ -31,6 +27,10 @@ describe("Better Auth API Key plugin", () => {
       return;
     }
 
+    const { createBetterAuthConfig } = await import(
+      "../../modules/auth/infrastructure/better-auth.server"
+    );
+
     const pool = new Pool({ connectionString: databaseUrl });
 
     try {
@@ -47,6 +47,10 @@ describe("Better Auth API Key plugin", () => {
     if (!databaseUrl) {
       return;
     }
+
+    const { inspectBetterAuthSchema } = await import(
+      "../../modules/auth/infrastructure/better-auth.server"
+    );
 
     const pool = new Pool({ connectionString: databaseUrl });
 
