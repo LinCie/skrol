@@ -8,7 +8,8 @@ export const Route = createFileRoute('/login')({
     redirect: typeof search.redirect === 'string' ? search.redirect : undefined,
   }),
   beforeLoad: async ({ search }) => {
-    const { data: session } = await authClient.getSession()
+    const { data } = await authClient.getSession()
+    const session = data?.session
 
     if (session) {
       const redirectTarget = getSafeRedirectTarget(search.redirect)

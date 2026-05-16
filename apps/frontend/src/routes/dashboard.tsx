@@ -4,7 +4,8 @@ import { authClient } from '../lib/auth-client'
 
 export const Route = createFileRoute('/dashboard')({
   beforeLoad: async ({ location }) => {
-    const { data: session } = await authClient.getSession()
+    const { data } = await authClient.getSession()
+    const session = data?.session
 
     if (!session) {
       throw redirect({

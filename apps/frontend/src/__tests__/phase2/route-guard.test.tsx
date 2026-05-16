@@ -14,6 +14,14 @@ vi.mock('../../lib/auth-client', () => ({
 
 const getSessionMock = vi.mocked(authClient.getSession)
 
+const unauthenticatedSession = {
+  data: {
+    session: null,
+    user: null,
+  },
+  error: null,
+}
+
 function renderAt(initialEntry: string) {
   const history = createMemoryHistory({ initialEntries: [initialEntry] })
   const router = getRouter({ history })
@@ -34,7 +42,7 @@ describe('route auth guards', () => {
   })
 
   it('redirects unauthenticated dashboard access to login', async () => {
-    getSessionMock.mockResolvedValue({ data: null, error: null })
+    getSessionMock.mockResolvedValue(unauthenticatedSession)
 
     const router = renderAt('/dashboard')
 
@@ -44,7 +52,7 @@ describe('route auth guards', () => {
   })
 
   it('preserves the attempted dashboard target on redirect to login', async () => {
-    getSessionMock.mockResolvedValue({ data: null, error: null })
+    getSessionMock.mockResolvedValue(unauthenticatedSession)
 
     const router = renderAt('/dashboard?tab=links')
 
@@ -70,6 +78,19 @@ describe('route auth guards', () => {
 
       await waitFor(() => {
         expect(router.state.location.pathname).toBe('/dashboard')
+      })
+    },
+  )
+
+  it.each(['/login', '/signup'])(
+    'allows unauthenticated users to stay on %s when session payload has null session',
+    async (path) => {
+      getSessionMock.mockResolvedValue(unauthenticatedSession)
+
+      const router = renderAt(path)
+
+      await waitFor(() => {
+        expect(router.state.location.pathname).toBe(path)
       })
     },
   )
