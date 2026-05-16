@@ -10,7 +10,6 @@ import type { UpdateLinkInput } from "@/modules/links/application/update-link.us
 import { Link } from "@/modules/links/domain/link.entity";
 
 const ownerA = "user_aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa";
-const ownerB = "user_bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb";
 const apiKeyId = "key_11111111-1111-4111-8111-111111111111";
 const ownerAId = "11111111-1111-4111-8111-111111111111";
 const ownerBId = "22222222-2222-4222-8222-222222222222";

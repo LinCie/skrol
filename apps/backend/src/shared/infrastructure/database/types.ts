@@ -5,10 +5,9 @@
 
 import type { ColumnType } from "kysely";
 
-export type Generated<T> =
-  T extends ColumnType<infer S, infer I, infer U>
-    ? ColumnType<S, I | undefined, U>
-    : ColumnType<T, T | undefined, T>;
+export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
+  ? ColumnType<S, I | undefined, U>
+  : ColumnType<T, T | undefined, T>;
 
 export type Json = JsonValue;
 
@@ -23,6 +22,47 @@ export type JsonPrimitive = boolean | number | string | null;
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
+
+export interface Account {
+  accessToken: string | null;
+  accessTokenExpiresAt: Timestamp | null;
+  accountId: string;
+  createdAt: Generated<Timestamp>;
+  id: string;
+  idToken: string | null;
+  password: string | null;
+  providerId: string;
+  refreshToken: string | null;
+  refreshTokenExpiresAt: Timestamp | null;
+  scope: string | null;
+  updatedAt: Timestamp;
+  userId: string;
+}
+
+export interface Apikey {
+  configId: string;
+  createdAt: Timestamp;
+  enabled: boolean | null;
+  expiresAt: Timestamp | null;
+  id: string;
+  key: string;
+  lastRefillAt: Timestamp | null;
+  lastRequest: Timestamp | null;
+  metadata: string | null;
+  name: string | null;
+  permissions: string | null;
+  prefix: string | null;
+  rateLimitEnabled: boolean | null;
+  rateLimitMax: number | null;
+  rateLimitTimeWindow: number | null;
+  referenceId: string;
+  refillAmount: number | null;
+  refillInterval: number | null;
+  remaining: number | null;
+  requestCount: number | null;
+  start: string | null;
+  updatedAt: Timestamp;
+}
 
 export interface ClickEvents {
   browser: string | null;
@@ -70,6 +110,27 @@ export interface Links {
   userId: string;
 }
 
+export interface Session {
+  createdAt: Generated<Timestamp>;
+  expiresAt: Timestamp;
+  id: string;
+  ipAddress: string | null;
+  token: string;
+  updatedAt: Timestamp;
+  userAgent: string | null;
+  userId: string;
+}
+
+export interface User {
+  createdAt: Generated<Timestamp>;
+  email: string;
+  emailVerified: boolean;
+  id: string;
+  image: string | null;
+  name: string;
+  updatedAt: Generated<Timestamp>;
+}
+
 export interface UserProfiles {
   createdAt: Generated<Timestamp>;
   role: Generated<string>;
@@ -77,10 +138,24 @@ export interface UserProfiles {
   userId: string;
 }
 
+export interface Verification {
+  createdAt: Generated<Timestamp>;
+  expiresAt: Timestamp;
+  id: string;
+  identifier: string;
+  updatedAt: Generated<Timestamp>;
+  value: string;
+}
+
 export interface DB {
+  account: Account;
+  apikey: Apikey;
   clickEvents: ClickEvents;
   domainBlocklist: DomainBlocklist;
   linkAuditLogs: LinkAuditLogs;
   links: Links;
+  session: Session;
+  user: User;
   userProfiles: UserProfiles;
+  verification: Verification;
 }

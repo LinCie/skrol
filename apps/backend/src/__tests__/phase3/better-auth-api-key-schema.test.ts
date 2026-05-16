@@ -19,6 +19,12 @@ function hasApiKeyEndpoints(plugin: unknown): boolean {
   );
 }
 
+function isApiKeyTableName(table: string): boolean {
+  const normalizedTable = table.toLowerCase();
+
+  return normalizedTable.includes("api") && normalizedTable.includes("key");
+}
+
 describeWithDatabase("Better Auth API Key plugin", () => {
   it("registers API key plugin in auth config", async () => {
     const { createBetterAuthConfig } = await import(
@@ -46,13 +52,18 @@ describeWithDatabase("Better Auth API Key plugin", () => {
     try {
       const schema = await inspectBetterAuthSchema({ database: pool });
       const plannedTables = schema.toBeCreated.map((entry) => entry.table);
+      const existingApiKeyTables = await pool.query<{ tableName: string }>(
+        `
+          select table_name as "tableName"
+          from information_schema.tables
+          where table_schema = current_schema()
+            and lower(table_name) in ('apikey', 'api_key', 'api_keys')
+        `,
+      );
 
       expect(
-        plannedTables.some(
-          (table) =>
-            table.toLowerCase().includes("api") &&
-            table.toLowerCase().includes("key"),
-        ),
+        plannedTables.some(isApiKeyTableName) ||
+          existingApiKeyTables.rows.length > 0,
       ).toBe(true);
     } finally {
       await pool.end();
