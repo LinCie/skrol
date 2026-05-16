@@ -1,6 +1,8 @@
 import { Elysia } from "elysia";
+import type { ApiKeyService } from "@/modules/auth/application/api-key.service";
 import type { AuthSessionService } from "@/modules/auth/application/auth-session.service";
-import { requireSession } from "@/modules/auth/presentation/session-guard";
+import { requireApiPrincipal } from "@/modules/auth/presentation/api-principal-guard";
+import { requireSameOriginForSessionWrite } from "@/modules/auth/presentation/session-write-origin-guard";
 import { normalizeAlias } from "@/modules/links/domain/alias-policy";
 import type { Link } from "@/modules/links/domain/link.entity";
 import type { LinksModule } from "@/modules/links/links.module";
@@ -9,9 +11,15 @@ import { apiError } from "@/shared/presentation/api-error";
 
 export interface LinksApiRoutesDependencies {
 	authSessionService: AuthSessionService;
+	apiKeyService: Pick<ApiKeyService, "verify">;
+	allowedOrigins: string[];
 	linksModule: Pick<
 		LinksModule,
-		"createLinkUseCase" | "listLinksUseCase" | "getLinkDetailUseCase"
+		| "createLinkUseCase"
+		| "listLinksUseCase"
+		| "getLinkDetailUseCase"
+		| "updateLinkUseCase"
+		| "deleteLinkUseCase"
 	>;
 }
 
@@ -19,7 +27,13 @@ const API_ALIAS_REGEX = /^[a-z0-9_-]{3,64}$/;
 
 export function linksApiRoutes(deps: LinksApiRoutesDependencies) {
 	return new Elysia({ name: "links.api-routes" })
-		.use(requireSession(deps.authSessionService))
+		.use(
+			requireApiPrincipal({
+				apiKeyService: deps.apiKeyService,
+				authSessionService: deps.authSessionService,
+			}),
+		)
+		.use(requireSameOriginForSessionWrite({ allowedOrigins: deps.allowedOrigins }))
 		.post("/api/v1/links", async ({ authPrincipal, body }) => {
 			if (!authPrincipal) {
 				return apiError(401, "unauthorized", "Authentication is required.");
@@ -32,7 +46,8 @@ export function linksApiRoutes(deps: LinksApiRoutesDependencies) {
 
 			const result = await deps.linksModule.createLinkUseCase.execute({
 				ownerUserId: authPrincipal.userId,
-				actorApiKeyId: null,
+				actorApiKeyId:
+					authPrincipal.authSource === "api-key" ? authPrincipal.apiKeyId : null,
 				destinationUrl: createBody.destinationUrl,
 				alias: createBody.alias,
 				title: createBody.title,
@@ -77,6 +92,48 @@ export function linksApiRoutes(deps: LinksApiRoutesDependencies) {
 			}
 
 			return Response.json(toLinkDto(link));
+		})
+		.patch("/api/v1/links/:id", async ({ authPrincipal, body, params }) => {
+			if (!authPrincipal) {
+				return apiError(401, "unauthorized", "Authentication is required.");
+			}
+
+			const patchBody = parseUpdateLinkBody(body);
+			if (!patchBody.ok) {
+				return apiError(400, "validation_error", "Invalid link request.");
+			}
+
+			const result = await deps.linksModule.updateLinkUseCase.execute({
+				id: params.id,
+				ownerUserId: authPrincipal.userId,
+				actorApiKeyId:
+					authPrincipal.authSource === "api-key" ? authPrincipal.apiKeyId : null,
+				patch: patchBody.patch,
+			});
+
+			if (!result.ok) {
+				return updateLinkError(result.code);
+			}
+
+			return Response.json(toLinkDto(result.link));
+		})
+		.delete("/api/v1/links/:id", async ({ authPrincipal, params, set }) => {
+			if (!authPrincipal) {
+				return apiError(401, "unauthorized", "Authentication is required.");
+			}
+
+			const result = await deps.linksModule.deleteLinkUseCase.execute({
+				id: params.id,
+				ownerUserId: authPrincipal.userId,
+				actorApiKeyId:
+					authPrincipal.authSource === "api-key" ? authPrincipal.apiKeyId : null,
+			});
+
+			if (!result.ok) {
+				return apiError(404, "not_found", "Link was not found.");
+			}
+
+			set.status = 204;
 		});
 }
 
@@ -89,6 +146,27 @@ type ParseCreateLinkBodyResult =
 			expiresAt: Date | null;
 	  }
 	| { ok: false };
+
+type UpdateLinkRequest = {
+	title?: string | null;
+	destination_url?: string;
+	expires_at?: string | null;
+	status?: "active" | "disabled";
+};
+
+type ParseUpdateLinkBodyResult =
+	| {
+			ok: true;
+			patch: UpdateLinkPatch;
+	  }
+	| { ok: false };
+
+type UpdateLinkPatch = {
+	title?: string | null;
+	destinationUrl?: string;
+	expiresAt?: Date | null;
+	status?: "active" | "disabled";
+};
 
 function toLinkDto(link: Link) {
 	return {
@@ -139,6 +217,61 @@ function parseCreateLinkBody(body: unknown): ParseCreateLinkBodyResult {
 		title: typeof record.title === "string" ? record.title : undefined,
 		expiresAt,
 	};
+}
+
+function parseUpdateLinkBody(body: unknown): ParseUpdateLinkBodyResult {
+	if (!body || typeof body !== "object") {
+		return { ok: false };
+	}
+
+	const record = body as Record<string, unknown>;
+	const keys = Object.keys(record);
+	if (keys.length === 0 || keys.some((key) => !isUpdateLinkRequestKey(key))) {
+		return { ok: false };
+	}
+
+	const patch: UpdateLinkPatch = {};
+	const request = record as UpdateLinkRequest;
+
+	if ("title" in request) {
+		if (request.title !== null && typeof request.title !== "string") {
+			return { ok: false };
+		}
+		patch.title = request.title;
+	}
+
+	if ("destination_url" in request) {
+		if (typeof request.destination_url !== "string") {
+			return { ok: false };
+		}
+		patch.destinationUrl = request.destination_url;
+	}
+
+	if ("expires_at" in request) {
+		const expiresAt = parseExpiresAt(request.expires_at);
+		if (expiresAt === false) {
+			return { ok: false };
+		}
+		patch.expiresAt = expiresAt;
+	}
+
+	if ("status" in request) {
+		if (request.status !== "active" && request.status !== "disabled") {
+			return { ok: false };
+		}
+		patch.status = request.status;
+	}
+
+	return { ok: true, patch };
+}
+
+function isUpdateLinkRequestKey(key: string): key is keyof UpdateLinkRequest {
+	return (
+		key === "title" ||
+		key === "destination_url" ||
+		key === "expires_at" ||
+		key === "status"
+	);
 }
 
 function parseAlias(value: unknown): string | undefined | false {
@@ -207,6 +340,14 @@ function isValidRfc3339Timestamp(value: string): boolean {
 function createLinkError(code: string): Response {
 	if (code === "alias_taken") {
 		return apiError(409, code, "Alias is already taken.");
+	}
+
+	return apiError(400, code, "Link request is invalid.");
+}
+
+function updateLinkError(code: string): Response {
+	if (code === "not_found") {
+		return apiError(404, code, "Link was not found.");
 	}
 
 	return apiError(400, code, "Link request is invalid.");

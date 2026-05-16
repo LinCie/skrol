@@ -10,6 +10,7 @@ const ownerA = "user_aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa";
 const ownerB = "user_bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb";
 const ownerAId = "11111111-1111-4111-8111-111111111111";
 const ownerBId = "22222222-2222-4222-8222-222222222222";
+const allowedOrigin = "http://localhost:3000";
 
 describe("Phase 2 links API routes", () => {
 	it("returns the product unauthorized envelope for unauthenticated links requests", async () => {
@@ -35,7 +36,10 @@ describe("Phase 2 links API routes", () => {
 		const response = await fakes.app.handle(
 			new Request("http://localhost/api/v1/links", {
 				method: "POST",
-				headers: { "Content-Type": "application/json" },
+				headers: {
+					"Content-Type": "application/json",
+					Origin: allowedOrigin,
+				},
 				body: JSON.stringify({
 					url: "https://example.com/docs",
 					alias: "Docs",
@@ -85,7 +89,10 @@ describe("Phase 2 links API routes", () => {
 			const response = await fakes.app.handle(
 				new Request("http://localhost/api/v1/links", {
 					method: "POST",
-					headers: { "Content-Type": "application/json" },
+					headers: {
+						"Content-Type": "application/json",
+						Origin: allowedOrigin,
+					},
 					body: JSON.stringify({
 						url: "https://example.com/docs",
 						expires_at: expiresAt,
@@ -112,7 +119,10 @@ describe("Phase 2 links API routes", () => {
 			const response = await fakes.app.handle(
 				new Request("http://localhost/api/v1/links", {
 					method: "POST",
-					headers: { "Content-Type": "application/json" },
+					headers: {
+						"Content-Type": "application/json",
+						Origin: allowedOrigin,
+					},
 					body: JSON.stringify({
 						url: "https://example.com/docs",
 						alias,
@@ -143,7 +153,10 @@ describe("Phase 2 links API routes", () => {
 			const response = await fakes.app.handle(
 				new Request("http://localhost/api/v1/links", {
 					method: "POST",
-					headers: { "Content-Type": "application/json" },
+					headers: {
+						"Content-Type": "application/json",
+						Origin: allowedOrigin,
+					},
 					body: JSON.stringify({
 						url: "https://example.com/docs",
 						expires_at: expiresAt,

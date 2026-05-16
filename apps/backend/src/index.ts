@@ -33,6 +33,8 @@ import { linksApiRoutes } from "@/modules/links/presentation/routes/links-api.ro
 import type { CreateLinkInput } from "@/modules/links/application/create-link.use-case";
 import type { ListLinksInput } from "@/modules/links/application/list-links.use-case";
 import type { GetLinkDetailInput } from "@/modules/links/application/get-link-detail.use-case";
+import type { UpdateLinkInput } from "@/modules/links/application/update-link.use-case";
+import type { DeleteLinkInput } from "@/modules/links/application/delete-link.use-case";
 import { UserProfilesRepository } from "@/modules/users/infrastructure/user-profiles.repository";
 
 export interface CreateAppDependencies {
@@ -43,7 +45,11 @@ export interface CreateAppDependencies {
   apiKeyService?: ApiKeyService;
   linksModule?: Pick<
     LinksModule,
-    "createLinkUseCase" | "listLinksUseCase" | "getLinkDetailUseCase"
+    | "createLinkUseCase"
+    | "listLinksUseCase"
+    | "getLinkDetailUseCase"
+    | "updateLinkUseCase"
+    | "deleteLinkUseCase"
   >;
 }
 
@@ -115,6 +121,9 @@ export function createApp(deps: CreateAppDependencies = {}): Elysia {
   app.use(
     linksApiRoutes({
       authSessionService,
+      apiKeyService:
+        apiKeyService ?? { verify: async () => ({ valid: false as const }) },
+      allowedOrigins: config.frontendOrigins,
       linksModule,
     }),
   );
@@ -142,7 +151,11 @@ export function createApp(deps: CreateAppDependencies = {}): Elysia {
 
 function createLazyLinksModule(): Pick<
   LinksModule,
-  "createLinkUseCase" | "listLinksUseCase" | "getLinkDetailUseCase"
+  | "createLinkUseCase"
+  | "listLinksUseCase"
+  | "getLinkDetailUseCase"
+  | "updateLinkUseCase"
+  | "deleteLinkUseCase"
 > {
   let module: LinksModule | null = null;
   const getModule = () => {
@@ -162,6 +175,14 @@ function createLazyLinksModule(): Pick<
     getLinkDetailUseCase: {
       execute: async (input: GetLinkDetailInput) =>
         getModule().getLinkDetailUseCase.execute(input),
+    },
+    updateLinkUseCase: {
+      execute: async (input: UpdateLinkInput) =>
+        getModule().updateLinkUseCase.execute(input),
+    },
+    deleteLinkUseCase: {
+      execute: async (input: DeleteLinkInput) =>
+        getModule().deleteLinkUseCase.execute(input),
     },
   } as never;
 }
