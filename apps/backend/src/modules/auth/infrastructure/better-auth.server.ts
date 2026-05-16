@@ -50,6 +50,10 @@ export function createBetterAuthConfig(
     plugins: [
       apiKey({
         defaultPrefix: "sk_live_",
+        keyExpiration: {
+          minExpiresIn: 1 / 24,
+          maxExpiresIn: 365,
+        },
       }) as unknown as BetterAuthPluginOption,
     ],
   };

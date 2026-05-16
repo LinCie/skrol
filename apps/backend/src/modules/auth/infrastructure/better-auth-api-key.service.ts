@@ -111,13 +111,21 @@ export class BetterAuthApiKeyService implements ApiKeyService {
 	}
 
 	async revoke(input: { userId: string; apiKeyId: string }): Promise<boolean> {
-		await this.api.updateApiKey({
-			body: {
-				keyId: input.apiKeyId,
-				userId: input.userId,
-				enabled: false,
-			},
-		});
+		try {
+			await this.api.updateApiKey({
+				body: {
+					keyId: input.apiKeyId,
+					userId: input.userId,
+					enabled: false,
+				},
+			});
+		} catch (error) {
+			if (isApiKeyNotFoundError(error)) {
+				return false;
+			}
+
+			throw error;
+		}
 
 		return true;
 	}
@@ -135,4 +143,23 @@ export class BetterAuthApiKeyService implements ApiKeyService {
 			apiKeyId: result.key.id,
 		};
 	}
+}
+
+function isApiKeyNotFoundError(error: unknown): boolean {
+	if (!error || typeof error !== "object") {
+		return false;
+	}
+
+	const candidate = error as {
+		status?: unknown;
+		statusCode?: unknown;
+		body?: { code?: unknown; message?: unknown };
+	};
+
+	return (
+		candidate.status === "NOT_FOUND" ||
+		candidate.statusCode === 404 ||
+		candidate.body?.code === "KEY_NOT_FOUND" ||
+		candidate.body?.message === "API Key not found"
+	);
 }

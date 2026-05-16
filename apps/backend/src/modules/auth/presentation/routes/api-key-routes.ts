@@ -16,6 +16,7 @@ type ParsedCreateBody =
 	| { ok: false };
 
 const MAX_API_KEY_EXPIRES_IN_SECONDS = 31_536_000;
+const MIN_API_KEY_EXPIRES_IN_SECONDS = 3_600;
 
 export function apiKeyRoutes(deps: {
 	authSessionService: AuthSessionService;
@@ -23,6 +24,11 @@ export function apiKeyRoutes(deps: {
 	allowedOrigins: string[];
 }) {
 	return new Elysia({ name: "auth.api-key-routes" })
+		.onError(({ code }) => {
+			if (code === "PARSE") {
+				return invalidCreateRequestError();
+			}
+		})
 		.use(requireSession(deps.authSessionService))
 		.use(requireSameOriginForSessionWrite({ allowedOrigins: deps.allowedOrigins }))
 		.post("/api/v1/api-keys", async ({ body, authPrincipal, set }) => {
@@ -32,7 +38,7 @@ export function apiKeyRoutes(deps: {
 
 			const parsedBody = parseCreateBody(body);
 			if (!parsedBody.ok) {
-				return apiError(400, "validation_error", "Invalid API key request.");
+				return invalidCreateRequestError();
 			}
 
 			const created = await runApiKeyServiceCall(() =>
@@ -102,7 +108,7 @@ function parseCreateBody(body: unknown): ParsedCreateBody {
 	if (
 		request.expires_in_seconds !== undefined &&
 		(!Number.isInteger(request.expires_in_seconds) ||
-			request.expires_in_seconds <= 0 ||
+			request.expires_in_seconds < MIN_API_KEY_EXPIRES_IN_SECONDS ||
 			request.expires_in_seconds > MAX_API_KEY_EXPIRES_IN_SECONDS)
 	) {
 		return { ok: false };
@@ -113,6 +119,10 @@ function parseCreateBody(body: unknown): ParsedCreateBody {
 		name: request.name.trim(),
 		expiresInSeconds: request.expires_in_seconds,
 	};
+}
+
+function invalidCreateRequestError(): Response {
+	return apiError(400, "validation_error", "Invalid API key request.");
 }
 
 async function runApiKeyServiceCall<T>(

@@ -170,6 +170,7 @@ describe("api key wrapper routes", () => {
 			{},
 			{ name: " " },
 			{ name: "CI", expires_in: 3600 },
+			{ name: "CI", expires_in_seconds: 3599 },
 			{ name: "CI", expires_in_seconds: 0 },
 			{ name: "CI", expires_in_seconds: -1 },
 			{ name: "CI", expires_in_seconds: 1.5 },
@@ -197,6 +198,29 @@ describe("api key wrapper routes", () => {
 				},
 			});
 		}
+	});
+
+	it("returns API error envelope for malformed JSON", async () => {
+		const { app } = createApp();
+
+		const response = await app.handle(
+			new Request("http://test/api/v1/api-keys", {
+				method: "POST",
+				headers: {
+					origin: "http://localhost:5173",
+					"content-type": "application/json",
+				},
+				body: "{",
+			}),
+		);
+
+		expect(response.status).toBe(400);
+		expect(await response.json()).toEqual({
+			error: {
+				code: "validation_error",
+				message: "Invalid API key request.",
+			},
+		});
 	});
 
 	it("returns 404 when revoke misses", async () => {
