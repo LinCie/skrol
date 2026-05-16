@@ -15,6 +15,7 @@ function createApp(overrides: {
 	apiKeyService?: Partial<ApiKeyService>;
 } = {}) {
 	const created: unknown[] = [];
+	const listed: unknown[] = [];
 	const apiKeyService: ApiKeyService = {
 		verify: async () => ({ valid: false as const }),
 		create: async (input) => {
@@ -32,23 +33,28 @@ function createApp(overrides: {
 				},
 			};
 		},
-		list: async () => [
-			{
-				id: "key_1",
-				name: "CI",
-				prefix: "sk_live_",
-				created_at: "2026-05-16T00:00:00.000Z",
-				last_used_at: null,
-				expires_at: null,
-				status: "active" as const,
-			},
-		],
+		list: async (input) => {
+			listed.push(input);
+
+			return [
+				{
+					id: "key_1",
+					name: "CI",
+					prefix: "sk_live_",
+					created_at: "2026-05-16T00:00:00.000Z",
+					last_used_at: null,
+					expires_at: null,
+					status: "active" as const,
+				},
+			];
+		},
 		revoke: async () => true,
 		...overrides.apiKeyService,
 	};
 
 	return {
 		created,
+		listed,
 		app: new Elysia().use(
 			apiKeyRoutes({
 				allowedOrigins: ["http://localhost:5173"],
@@ -95,10 +101,12 @@ describe("api key wrapper routes", () => {
 	});
 
 	it("lists safe metadata without raw keys", async () => {
-		const { app } = createApp();
+		const { app, listed } = createApp();
 
 		const response = await app.handle(
-			new Request("http://test/api/v1/api-keys"),
+			new Request("http://test/api/v1/api-keys", {
+				headers: { cookie: "session=value" },
+			}),
 		);
 
 		expect(response.status).toBe(200);
@@ -115,6 +123,12 @@ describe("api key wrapper routes", () => {
 				},
 			],
 		});
+		expect(listed).toEqual([
+			{ userId: "user_1", headers: expect.any(Headers) },
+		]);
+		expect((listed[0] as { headers: Headers }).headers.get("cookie")).toBe(
+			"session=value",
+		);
 	});
 
 	it("revokes key through DELETE and returns 204", async () => {
@@ -279,11 +293,11 @@ describe("api key wrapper routes", () => {
 		);
 
 		for (const response of [createResponse, listResponse, revokeResponse]) {
-			expect(response.status).toBe(503);
+			expect(response.status).toBe(400);
 			expect(await response.json()).toEqual({
 				error: {
-					code: "service_unavailable",
-					message: "API key service is unavailable.",
+					code: "validation_error",
+					message: "API key request failed.",
 				},
 			});
 		}

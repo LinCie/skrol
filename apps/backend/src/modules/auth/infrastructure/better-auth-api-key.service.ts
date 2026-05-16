@@ -12,14 +12,15 @@ type BetterAuthApiKeyRecord = {
 	prefix?: string | null;
 	createdAt?: Date | string | null;
 	lastUsedAt?: Date | string | null;
+	lastRequest?: Date | string | null;
 	expiresAt?: Date | string | null;
 	enabled?: boolean;
 	disabled?: boolean;
+	referenceId?: string | null;
 };
 
-type BetterAuthCreateApiKeyResponse = {
+type BetterAuthCreateApiKeyResponse = BetterAuthApiKeyRecord & {
 	key: string;
-	metadata: BetterAuthApiKeyRecord;
 };
 
 type BetterAuthListApiKeysResponse = {
@@ -28,7 +29,7 @@ type BetterAuthListApiKeysResponse = {
 
 type BetterAuthVerifyApiKeyResponse = {
 	valid: boolean;
-	key: Pick<BetterAuthApiKeyRecord, "id"> | null;
+	key: Pick<BetterAuthApiKeyRecord, "id" | "referenceId"> | null;
 	userId?: string;
 };
 
@@ -36,9 +37,7 @@ type BetterAuthApi = {
 	createApiKey: (input: {
 		body: { name: string; userId: string; expiresIn?: number };
 	}) => Promise<BetterAuthCreateApiKeyResponse>;
-	listApiKeys: (input: {
-		query: { userId: string };
-	}) => Promise<BetterAuthListApiKeysResponse>;
+	listApiKeys: (input: { query: Record<string, never>; headers?: Headers }) => Promise<BetterAuthListApiKeysResponse>;
 	verifyApiKey: (input: {
 		body: { key: string };
 	}) => Promise<BetterAuthVerifyApiKeyResponse>;
@@ -81,7 +80,7 @@ function mapMetadata(record: BetterAuthApiKeyRecord): ApiKeyMetadataDto {
 		name: record.name ?? "",
 		prefix: record.prefix ?? null,
 		created_at: toDateString(record.createdAt) ?? new Date(0).toISOString(),
-		last_used_at: toDateString(record.lastUsedAt),
+		last_used_at: toDateString(record.lastUsedAt ?? record.lastRequest),
 		expires_at: toDateString(record.expiresAt),
 		status: mapStatus(record),
 	};
@@ -101,12 +100,12 @@ export class BetterAuthApiKeyService implements ApiKeyService {
 
 		return {
 			key: result.key,
-			apiKey: mapMetadata(result.metadata),
+			apiKey: mapMetadata(result),
 		};
 	}
 
-	async list(userId: string): Promise<ApiKeyMetadataDto[]> {
-		const result = await this.api.listApiKeys({ query: { userId } });
+	async list(input: { userId: string; headers?: Headers }): Promise<ApiKeyMetadataDto[]> {
+		const result = await this.api.listApiKeys({ query: {}, headers: input.headers });
 		return result.apiKeys.map(mapMetadata);
 	}
 
@@ -133,13 +132,15 @@ export class BetterAuthApiKeyService implements ApiKeyService {
 	async verify(key: string): Promise<VerifyApiKeyResult> {
 		const result = await this.api.verifyApiKey({ body: { key } });
 
-		if (!result.valid || !result.userId || !result.key?.id) {
+		const userId = result.userId ?? result.key?.referenceId;
+
+		if (!result.valid || !userId || !result.key?.id) {
 			return { valid: false };
 		}
 
 		return {
 			valid: true,
-			userId: result.userId,
+			userId,
 			apiKeyId: result.key.id,
 		};
 	}

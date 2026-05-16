@@ -55,13 +55,16 @@ export function apiKeyRoutes(deps: {
 			set.status = 201;
 			return { key: created.value.key, api_key: created.value.apiKey };
 		})
-		.get("/api/v1/api-keys", async ({ authPrincipal }) => {
+		.get("/api/v1/api-keys", async ({ authPrincipal, request }) => {
 			if (!authPrincipal) {
 				return apiError(401, "unauthorized", "Authentication is required.");
 			}
 
 			const items = await runApiKeyServiceCall(() =>
-				deps.apiKeyService.list(authPrincipal.userId),
+				deps.apiKeyService.list({
+					userId: authPrincipal.userId,
+					headers: request.headers,
+				}),
 			);
 			if (!items.ok) {
 				return serviceUnavailableError();
@@ -137,8 +140,8 @@ async function runApiKeyServiceCall<T>(
 
 function serviceUnavailableError(): Response {
 	return apiError(
-		503,
-		"service_unavailable",
-		"API key service is unavailable.",
+		400,
+		"validation_error",
+		"API key request failed.",
 	);
 }
