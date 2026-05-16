@@ -20,11 +20,14 @@ import { RedirectModule } from "@/modules/redirect/redirect.module";
 import type { ResolveRedirectUseCase } from "@/modules/redirect/application/resolve-redirect.use-case";
 import { createDefaultBetterAuthInstance } from "@/modules/auth/infrastructure/better-auth.server";
 import { BetterAuthSessionService } from "@/modules/auth/infrastructure/auth-session.service.impl";
+import { BetterAuthApiKeyService } from "@/modules/auth/infrastructure/better-auth-api-key.service";
 import type { AuthSessionService } from "@/modules/auth/application/auth-session.service";
+import type { ApiKeyService } from "@/modules/auth/application/api-key.service";
 import {
   mountBetterAuthRoutes,
   type BetterAuthHandler,
 } from "@/modules/auth/presentation/routes/mount-better-auth";
+import { apiKeyRoutes } from "@/modules/auth/presentation/routes/api-key-routes";
 import { LinksModule } from "@/modules/links/links.module";
 import { linksApiRoutes } from "@/modules/links/presentation/routes/links-api.routes";
 import type { CreateLinkInput } from "@/modules/links/application/create-link.use-case";
@@ -37,6 +40,7 @@ export interface CreateAppDependencies {
   resolveRedirectUseCase?: ResolveRedirectUseCase;
   betterAuthHandler?: BetterAuthHandler;
   authSessionService?: AuthSessionService;
+  apiKeyService?: ApiKeyService;
   linksModule?: Pick<
     LinksModule,
     "createLinkUseCase" | "listLinksUseCase" | "getLinkDetailUseCase"
@@ -64,6 +68,13 @@ export function createApp(deps: CreateAppDependencies = {}): Elysia {
           },
         )
       : { resolveFromRequest: async () => null });
+  const apiKeyService =
+    deps.apiKeyService ??
+    (betterAuthInstance
+      ? new BetterAuthApiKeyService(
+          betterAuthInstance.api as Parameters<typeof BetterAuthApiKeyService>[0],
+        )
+      : createNoopApiKeyService());
   const linksModule = deps.linksModule ?? createLazyLinksModule();
   const redirectModule = new RedirectModule({
     resolveRedirectUseCase: deps.resolveRedirectUseCase,
@@ -88,6 +99,13 @@ export function createApp(deps: CreateAppDependencies = {}): Elysia {
   app.use(
     mountBetterAuthRoutes({
       handler: betterAuthHandler,
+    }),
+  );
+  app.use(
+    apiKeyRoutes({
+      authSessionService,
+      apiKeyService,
+      allowedOrigins: config.frontendOrigins,
     }),
   );
   app.use(
@@ -116,6 +134,17 @@ export function createApp(deps: CreateAppDependencies = {}): Elysia {
   });
 
   return app;
+}
+
+function createNoopApiKeyService(): ApiKeyService {
+  return {
+    create: async () => {
+      throw new Error("API key service is not configured.");
+    },
+    list: async () => [],
+    revoke: async () => false,
+    verify: async () => ({ valid: false }),
+  };
 }
 
 function createLazyLinksModule(): Pick<
