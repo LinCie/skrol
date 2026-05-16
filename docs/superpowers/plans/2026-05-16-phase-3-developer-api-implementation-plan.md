@@ -60,7 +60,7 @@ Modify these files:
 - Modify: `apps/backend/src/modules/auth/infrastructure/better-auth.server.ts`
 - Test: `apps/backend/src/__tests__/phase3/better-auth-api-key-schema.test.ts`
 
-- [ ] **Step 1: Add dependency through Bun**
+- [x] **Step 1: Add dependency through Bun**
 
 Run from repo root:
 
@@ -71,7 +71,7 @@ bun --cwd apps/frontend add @better-auth/api-key
 
 Expected: Bun updates both workspace `package.json` files and `bun.lock`. Do not hand-edit dependency versions.
 
-- [ ] **Step 2: Write failing plugin/schema test**
+- [x] **Step 2: Write failing plugin/schema test**
 
 Create `apps/backend/src/__tests__/phase3/better-auth-api-key-schema.test.ts` with these assertions:
 
@@ -112,7 +112,7 @@ describe("Better Auth API Key plugin", () => {
 });
 ```
 
-- [ ] **Step 3: Run failing test**
+- [x] **Step 3: Run failing test**
 
 Run from `apps/backend`:
 
@@ -122,7 +122,7 @@ bun test src/__tests__/phase3/better-auth-api-key-schema.test.ts
 
 Expected: test fails because `createBetterAuthConfig({ database })` has empty `plugins` or `@better-auth/api-key` is not configured.
 
-- [ ] **Step 4: Configure Better Auth plugin**
+- [x] **Step 4: Configure Better Auth plugin**
 
 Modify `apps/backend/src/modules/auth/infrastructure/better-auth.server.ts`:
 
@@ -139,7 +139,7 @@ plugins: [
 
 Keep existing `emailAndPassword`, `trustedOrigins`, `database`, and user profile hook behavior unchanged.
 
-- [ ] **Step 5: Run schema test**
+- [x] **Step 5: Run schema test**
 
 Run from `apps/backend`:
 
@@ -149,7 +149,7 @@ bun test src/__tests__/phase3/better-auth-api-key-schema.test.ts
 
 Expected: PASS. Do not hard-code a speculative Better Auth table name; if schema output names differ, keep a plugin-backed assertion based on installed schema output.
 
-- [ ] **Step 6: Discover installed API Key plugin API before wrapper wiring**
+- [x] **Step 6: Discover installed API Key plugin API before wrapper wiring**
 
 Create `apps/backend/src/__tests__/phase3/better-auth-api-key-adapter-discovery.test.ts` with assertions against installed package types/runtime. This test is allowed to be adjusted to exact installed method names, but it must prove these facts before Task 2 implementation proceeds:
 
@@ -183,7 +183,7 @@ bun test src/__tests__/phase3/better-auth-api-key-adapter-discovery.test.ts
 
 Expected: PASS only after exact installed API shape is documented. Do not continue to Task 2 with guessed method names or guessed response fields.
 
-- [ ] **Step 7: Commit task**
+- [x] **Step 7: Commit task**
 
 ```sh
 git add apps/backend/package.json apps/frontend/package.json bun.lock apps/backend/src/modules/auth/infrastructure/better-auth.server.ts apps/backend/src/__tests__/phase3/better-auth-api-key-schema.test.ts apps/backend/src/__tests__/phase3/better-auth-api-key-adapter-discovery.test.ts
@@ -203,7 +203,7 @@ git commit -m "feat: configure better auth api key plugin"
 - Modify: `apps/backend/src/modules/auth/application/auth-principal.ts`
 - Test: `apps/backend/src/__tests__/phase3/api-principal-guard.test.ts`
 
-- [ ] **Step 1: Write failing guard tests**
+- [x] **Step 1: Write failing guard tests**
 
 Create `apps/backend/src/__tests__/phase3/api-principal-guard.test.ts` with these cases:
 
@@ -279,7 +279,7 @@ describe("requireSameOriginForSessionWrite", () => {
 });
 ```
 
-- [ ] **Step 2: Run failing guard tests**
+- [x] **Step 2: Run failing guard tests**
 
 Run from `apps/backend`:
 
@@ -289,7 +289,7 @@ bun test src/__tests__/phase3/api-principal-guard.test.ts
 
 Expected: FAIL because files/functions do not exist.
 
-- [ ] **Step 3: Define principal union**
+- [x] **Step 3: Define principal union**
 
 Modify `apps/backend/src/modules/auth/application/auth-principal.ts`:
 
@@ -301,7 +301,7 @@ export type AuthPrincipal =
 export const AUTH_PRINCIPAL_DECORATOR = "authPrincipal" as const;
 ```
 
-- [ ] **Step 4: Define API key service interface**
+- [x] **Step 4: Define API key service interface**
 
 Create `apps/backend/src/modules/auth/application/api-key.service.ts`:
 
@@ -341,7 +341,7 @@ export interface ApiKeyService {
 }
 ```
 
-- [ ] **Step 5: Implement Better Auth adapter skeleton**
+- [x] **Step 5: Implement Better Auth adapter skeleton**
 
 Create `apps/backend/src/modules/auth/infrastructure/better-auth-api-key.service.ts`:
 
@@ -421,7 +421,7 @@ export class BetterAuthApiKeyService implements ApiKeyService {
 
 During implementation, replace guessed method names with names proven by Task 1 Step 6. If no disable/update method exists, stop and ask for spec revision instead of hard-deleting keys. If verify does not return API key ID, add and test a lookup strategy before wiring audits or `createdViaApiKeyId`.
 
-- [ ] **Step 6: Implement combined guard**
+- [x] **Step 6: Implement combined guard**
 
 Create `apps/backend/src/modules/auth/presentation/api-principal-guard.ts`:
 
@@ -461,7 +461,7 @@ export function requireApiPrincipal(deps: { apiKeyService: Pick<ApiKeyService, "
 }
 ```
 
-- [ ] **Step 7: Implement origin guard**
+- [x] **Step 7: Implement origin guard**
 
 Create `apps/backend/src/modules/auth/presentation/session-write-origin-guard.ts`:
 
@@ -495,7 +495,7 @@ export function requireSameOriginForSessionWrite(deps: { allowedOrigins: string[
 }
 ```
 
-- [ ] **Step 8: Run guard tests**
+- [x] **Step 8: Run guard tests**
 
 Run from `apps/backend`:
 
@@ -505,7 +505,7 @@ bun test src/__tests__/phase3/api-principal-guard.test.ts
 
 Expected: PASS.
 
-- [ ] **Step 9: Commit task**
+- [x] **Step 9: Commit task**
 
 ```sh
 git add apps/backend/src/modules/auth/application/auth-principal.ts apps/backend/src/modules/auth/application/api-key.service.ts apps/backend/src/modules/auth/infrastructure/better-auth-api-key.service.ts apps/backend/src/modules/auth/presentation/api-principal-guard.ts apps/backend/src/modules/auth/presentation/session-write-origin-guard.ts apps/backend/src/__tests__/phase3/api-principal-guard.test.ts
@@ -522,7 +522,7 @@ git commit -m "feat: add api principal guards"
 - Modify: `apps/backend/src/index.ts`
 - Test: `apps/backend/src/__tests__/phase3/api-key-routes.test.ts`
 
-- [ ] **Step 1: Write failing route tests**
+- [x] **Step 1: Write failing route tests**
 
 Create `apps/backend/src/__tests__/phase3/api-key-routes.test.ts` with these assertions:
 
@@ -577,7 +577,7 @@ describe("api key wrapper routes", () => {
 });
 ```
 
-- [ ] **Step 2: Run failing route tests**
+- [x] **Step 2: Run failing route tests**
 
 Run from `apps/backend`:
 
@@ -587,7 +587,7 @@ bun test src/__tests__/phase3/api-key-routes.test.ts
 
 Expected: FAIL because route file does not exist.
 
-- [ ] **Step 3: Implement wrapper routes**
+- [x] **Step 3: Implement wrapper routes**
 
 Create `apps/backend/src/modules/auth/presentation/routes/api-key-routes.ts`:
 
@@ -636,11 +636,11 @@ export function apiKeyRoutes(deps: { authSessionService: AuthSessionService; api
 }
 ```
 
-- [ ] **Step 4: Wire route in app**
+- [x] **Step 4: Wire route in app**
 
 Modify `apps/backend/src/index.ts` to create `BetterAuthApiKeyService` from `betterAuthInstance.api`, pass `config.frontendOrigins`, and mount `apiKeyRoutes(...)` before link routes.
 
-- [ ] **Step 5: Run route tests**
+- [x] **Step 5: Run route tests**
 
 Run from `apps/backend`:
 
@@ -650,7 +650,7 @@ bun test src/__tests__/phase3/api-key-routes.test.ts
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit task**
+- [x] **Step 6: Commit task**
 
 ```sh
 git add apps/backend/src/modules/auth/presentation/routes/api-key-routes.ts apps/backend/src/index.ts apps/backend/src/__tests__/phase3/api-key-routes.test.ts
@@ -670,7 +670,7 @@ git commit -m "feat: add api key wrapper routes"
 - Modify: `apps/backend/src/modules/links/links.module.ts`
 - Test: `apps/backend/src/__tests__/phase3/link-management-use-cases.test.ts`
 
-- [ ] **Step 1: Write failing use case tests**
+- [x] **Step 1: Write failing use case tests**
 
 Create tests that assert:
 
@@ -683,7 +683,7 @@ Create tests that assert:
 
 Use in-memory fake repository methods with arrays for `updates` and `auditLogs`.
 
-- [ ] **Step 2: Run failing use case tests**
+- [x] **Step 2: Run failing use case tests**
 
 Run from `apps/backend`:
 
@@ -693,7 +693,7 @@ bun test src/__tests__/phase3/link-management-use-cases.test.ts
 
 Expected: FAIL because use cases and repository methods do not exist.
 
-- [ ] **Step 3: Extend repository contract**
+- [x] **Step 3: Extend repository contract**
 
 Add to `apps/backend/src/modules/links/application/links.repository.ts`:
 
@@ -726,7 +726,7 @@ export interface LinksRepository {
 }
 ```
 
-- [ ] **Step 4: Implement repository methods**
+- [x] **Step 4: Implement repository methods**
 
 Modify `apps/backend/src/modules/links/infrastructure/repositories/links.repository.impl.ts`:
 
@@ -779,15 +779,15 @@ async createAuditLog(input: CreateLinkAuditLogInput): Promise<void> {
 Use existing repository type imports for `Links`, `Updateable`, and row mapping names.
 Database columns are `user_id` and `actor_api_key_id`; generated Kysely fields are `userId` and `actorApiKeyId`.
 
-- [ ] **Step 5: Implement update use case**
+- [x] **Step 5: Implement update use case**
 
 Create `apps/backend/src/modules/links/application/update-link.use-case.ts` with result codes `not_found`, `invalid_url`, `unsafe_url`, `validation_error`. Reuse `validateDestinationUrl`, `domainMatchesBlocklist`, and blocklist repository pattern from `create-link.use-case.ts`. Reject empty patch and status outside `active | disabled`. Audit each changed field with canonical ERD/Master actions: `title_changed`, `destination_url_changed`, `expiration_changed`, `link_disabled`, and `link_reenabled`. For status changes, choose `link_disabled` when new status is `disabled` and `link_reenabled` when new status is `active`.
 
-- [ ] **Step 6: Implement delete use case**
+- [x] **Step 6: Implement delete use case**
 
 Create `apps/backend/src/modules/links/application/delete-link.use-case.ts` with result codes `not_found`. On success, write audit action `link_deleted` with previous status and new status `deleted`.
 
-- [ ] **Step 7: Wire links module**
+- [x] **Step 7: Wire links module**
 
 Modify `apps/backend/src/modules/links/links.module.ts` to expose:
 
@@ -796,7 +796,7 @@ updateLinkUseCase: new UpdateLinkUseCase({ linksRepository, domainBlocklistRepos
 deleteLinkUseCase: new DeleteLinkUseCase({ linksRepository }),
 ```
 
-- [ ] **Step 8: Run use case tests**
+- [x] **Step 8: Run use case tests**
 
 Run from `apps/backend`:
 
@@ -806,7 +806,7 @@ bun test src/__tests__/phase3/link-management-use-cases.test.ts
 
 Expected: PASS.
 
-- [ ] **Step 9: Commit task**
+- [x] **Step 9: Commit task**
 
 ```sh
 git add apps/backend/src/modules/links/application/links.repository.ts apps/backend/src/modules/links/infrastructure/repositories/links.repository.impl.ts apps/backend/src/modules/links/application/update-link.use-case.ts apps/backend/src/modules/links/application/delete-link.use-case.ts apps/backend/src/modules/links/links.module.ts apps/backend/src/__tests__/phase3/link-management-use-cases.test.ts
@@ -823,7 +823,7 @@ git commit -m "feat: add link management use cases"
 - Modify: `apps/backend/src/index.ts`
 - Test: `apps/backend/src/__tests__/phase3/links-api-crud-routes.test.ts`
 
-- [ ] **Step 1: Write failing route tests**
+- [x] **Step 1: Write failing route tests**
 
 Create tests that cover:
 
@@ -837,7 +837,7 @@ Create tests that cover:
 - Non-owned/missing update/delete maps to `404 not_found`.
 - Existing list contract stays `limit` default 20/max 100, `cursor`, `{ items, nextCursor }`.
 
-- [ ] **Step 2: Run failing route tests**
+- [x] **Step 2: Run failing route tests**
 
 Run from `apps/backend`:
 
@@ -847,7 +847,7 @@ bun test src/__tests__/phase3/links-api-crud-routes.test.ts
 
 Expected: FAIL because routes still use session-only guard and lack `PATCH`/`DELETE`.
 
-- [ ] **Step 3: Switch route auth to combined guard**
+- [x] **Step 3: Switch route auth to combined guard**
 
 Modify `apps/backend/src/modules/links/presentation/routes/links-api.routes.ts` route dependencies to include:
 
@@ -865,7 +865,7 @@ Replace `.use(requireSession(...))` with:
 
 Apply `requireSameOriginForSessionWrite({ allowedOrigins: deps.allowedOrigins })` to write routes.
 
-- [ ] **Step 4: Preserve create/list/detail behavior**
+- [x] **Step 4: Preserve create/list/detail behavior**
 
 Keep existing `POST`, `GET`, `GET/:id`, DTO fields, pagination default `20`, max `100`, `cursor`, and `{ items, nextCursor }`. Change create input to:
 
@@ -873,7 +873,7 @@ Keep existing `POST`, `GET`, `GET/:id`, DTO fields, pagination default `20`, max
 actorApiKeyId: authPrincipal.authSource === "api-key" ? authPrincipal.apiKeyId : null,
 ```
 
-- [ ] **Step 5: Add PATCH parsing and route**
+- [x] **Step 5: Add PATCH parsing and route**
 
 Add parser that accepts only:
 
@@ -888,15 +888,15 @@ type UpdateLinkRequest = {
 
 Reject empty body, unknown fields, invalid timestamp, and invalid status with `400 validation_error`. Call `updateLinkUseCase.execute(...)`; map `not_found` to `404`, `invalid_url`/`unsafe_url`/`validation_error` to `400` with same code.
 
-- [ ] **Step 6: Add DELETE route**
+- [x] **Step 6: Add DELETE route**
 
 Add `DELETE /api/v1/links/:id` that calls `deleteLinkUseCase.execute({ linkId: params.id, ownerUserId: authPrincipal.userId, actorApiKeyId })`. Return `204` on success and `404 not_found` when missing.
 
-- [ ] **Step 7: Wire app dependencies**
+- [x] **Step 7: Wire app dependencies**
 
 Modify `apps/backend/src/index.ts` to pass `apiKeyService`, `allowedOrigins: config.frontendOrigins`, and new links module use cases into `linksApiRoutes(...)`. Extend dependency types and lazy links module proxy to include `updateLinkUseCase` and `deleteLinkUseCase`.
 
-- [ ] **Step 8: Run route tests**
+- [x] **Step 8: Run route tests**
 
 Run from `apps/backend`:
 
@@ -906,7 +906,7 @@ bun test src/__tests__/phase3/links-api-crud-routes.test.ts
 
 Expected: PASS.
 
-- [ ] **Step 9: Run Phase 2 route regression tests**
+- [x] **Step 9: Run Phase 2 route regression tests**
 
 Run from `apps/backend`:
 
@@ -916,7 +916,7 @@ bun test src/__tests__/phase2/links-api-routes.test.ts src/__tests__/phase2/sess
 
 Expected: PASS after updating any session write requests in `src/__tests__/phase2/links-api-routes.test.ts` to include a valid configured same-origin `Origin` header. Dashboard session-created link behavior remains intact, but strict session-write origin protection rejects missing `Origin`/`Referer`.
 
-- [ ] **Step 10: Commit task**
+- [x] **Step 10: Commit task**
 
 ```sh
 git add apps/backend/src/modules/links/presentation/routes/links-api.routes.ts apps/backend/src/index.ts apps/backend/src/__tests__/phase3/links-api-crud-routes.test.ts
@@ -933,7 +933,7 @@ git commit -m "feat: add api-authenticated link crud routes"
 - Modify: `apps/frontend/src/lib/api-client.ts`
 - Test: `apps/frontend/src/__tests__/phase3/api-client.test.ts`
 
-- [ ] **Step 1: Write failing frontend client tests**
+- [x] **Step 1: Write failing frontend client tests**
 
 Create tests for:
 
@@ -943,7 +943,7 @@ Create tests for:
 - `updateLink("link_1", { status: "disabled" })` sends `PATCH /api/v1/links/link_1`.
 - `deleteLink("link_1")` sends `DELETE /api/v1/links/link_1` and accepts `204`.
 
-- [ ] **Step 2: Run failing client tests**
+- [x] **Step 2: Run failing client tests**
 
 Run from `apps/frontend`:
 
@@ -953,7 +953,7 @@ bunx vitest run src/__tests__/phase3/api-client.test.ts
 
 Expected: FAIL because methods do not exist.
 
-- [ ] **Step 3: Add auth client plugin**
+- [x] **Step 3: Add auth client plugin**
 
 Modify `apps/frontend/src/lib/auth-client.ts`:
 
@@ -966,7 +966,7 @@ export const authClient = createAuthClient({
 });
 ```
 
-- [ ] **Step 4: Add API key and link management types/methods**
+- [x] **Step 4: Add API key and link management types/methods**
 
 Modify `apps/frontend/src/lib/api-client.ts` to export:
 
@@ -1007,7 +1007,7 @@ export function deleteLink(id: string) {
 }
 ```
 
-- [ ] **Step 5: Run client tests**
+- [x] **Step 5: Run client tests**
 
 Run from `apps/frontend`:
 
@@ -1017,7 +1017,7 @@ bunx vitest run src/__tests__/phase3/api-client.test.ts
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit task**
+- [x] **Step 6: Commit task**
 
 ```sh
 git add apps/frontend/src/lib/auth-client.ts apps/frontend/src/lib/api-client.ts apps/frontend/src/__tests__/phase3/api-client.test.ts
@@ -1035,7 +1035,7 @@ git commit -m "feat: add frontend api key client methods"
 - Modify: `apps/frontend/src/routeTree.gen.ts`
 - Test: `apps/frontend/src/__tests__/phase3/api-keys-page.test.tsx`
 
-- [ ] **Step 1: Write failing page tests**
+- [x] **Step 1: Write failing page tests**
 
 Create tests that mock `listApiKeys`, `createApiKey`, and `deleteApiKey`, then assert:
 
@@ -1044,7 +1044,7 @@ Create tests that mock `listApiKeys`, `createApiKey`, and `deleteApiKey`, then a
 - Raw key panel appears with text `Copy this key now` and `For security, Skrol will not show the full key again.` after create.
 - Revoke button asks confirmation and calls `deleteApiKey`.
 
-- [ ] **Step 2: Run failing page tests**
+- [x] **Step 2: Run failing page tests**
 
 Run from `apps/frontend`:
 
@@ -1054,7 +1054,7 @@ bunx vitest run src/__tests__/phase3/api-keys-page.test.tsx
 
 Expected: FAIL because route file does not exist.
 
-- [ ] **Step 3: Implement API keys page**
+- [x] **Step 3: Implement API keys page**
 
 Create `apps/frontend/src/routes/dashboard.api-keys.tsx` with `createFileRoute("/dashboard/api-keys")`, `useEffect` loading `listApiKeys()`, form state for `name` and optional `expires_in_seconds`, one-time `createdKey` state, `navigator.clipboard.writeText(createdKey)` copy button, and table rendering safe metadata only.
 
@@ -1065,7 +1065,7 @@ Required visible copy:
 <p>For security, Skrol will not show the full key again.</p>
 ```
 
-- [ ] **Step 4: Add dashboard nav**
+- [x] **Step 4: Add dashboard nav**
 
 Modify `apps/frontend/src/routes/dashboard.tsx` to include links to:
 
@@ -1076,7 +1076,7 @@ Modify `apps/frontend/src/routes/dashboard.tsx` to include links to:
 
 Add an API keys card/link on dashboard home.
 
-- [ ] **Step 5: Regenerate route tree**
+- [x] **Step 5: Regenerate route tree**
 
 Run from `apps/frontend`:
 
@@ -1086,7 +1086,7 @@ bun run build
 
 If build updates `src/routeTree.gen.ts`, keep generated changes. If build fails because route tree is stale and generator is separate, inspect existing package scripts and run project route generation command exposed by TanStack tooling.
 
-- [ ] **Step 6: Run page tests**
+- [x] **Step 6: Run page tests**
 
 Run from `apps/frontend`:
 
@@ -1096,7 +1096,7 @@ bunx vitest run src/__tests__/phase3/api-keys-page.test.tsx
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit task**
+- [x] **Step 7: Commit task**
 
 ```sh
 git add apps/frontend/src/routes/dashboard.api-keys.tsx apps/frontend/src/routes/dashboard.tsx apps/frontend/src/routeTree.gen.ts apps/frontend/src/__tests__/phase3/api-keys-page.test.tsx
@@ -1112,7 +1112,7 @@ git commit -m "feat: add api keys dashboard page"
 - Modify: `apps/frontend/src/routes/dashboard.links.$id.tsx`
 - Test: `apps/frontend/src/__tests__/phase3/link-management-page.test.tsx`
 
-- [ ] **Step 1: Write failing link management page tests**
+- [x] **Step 1: Write failing link management page tests**
 
 Create tests that mock `getLink`, `updateLink`, and `deleteLink`, then assert:
 
@@ -1122,7 +1122,7 @@ Create tests that mock `getLink`, `updateLink`, and `deleteLink`, then assert:
 - Re-enable button calls `updateLink(id, { status: "active" })` when current status is disabled.
 - Delete button asks confirmation and calls `deleteLink(id)`.
 
-- [ ] **Step 2: Run failing page tests**
+- [x] **Step 2: Run failing page tests**
 
 Run from `apps/frontend`:
 
@@ -1132,7 +1132,7 @@ bunx vitest run src/__tests__/phase3/link-management-page.test.tsx
 
 Expected: FAIL because controls do not exist.
 
-- [ ] **Step 3: Implement edit form and actions**
+- [x] **Step 3: Implement edit form and actions**
 
 Modify `apps/frontend/src/routes/dashboard.links.$id.tsx`:
 
@@ -1141,7 +1141,7 @@ Modify `apps/frontend/src/routes/dashboard.links.$id.tsx`:
 - Add status toggle handler that sends `{ status: "disabled" }` or `{ status: "active" }`.
 - Add delete handler with `window.confirm("Delete this link?")`, calls `deleteLink(link.id)`, then navigates to `/dashboard/links`.
 
-- [ ] **Step 4: Run page tests**
+- [x] **Step 4: Run page tests**
 
 Run from `apps/frontend`:
 
@@ -1151,7 +1151,7 @@ bunx vitest run src/__tests__/phase3/link-management-page.test.tsx
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit task**
+- [x] **Step 5: Commit task**
 
 ```sh
 git add apps/frontend/src/routes/dashboard.links.\$id.tsx apps/frontend/src/__tests__/phase3/link-management-page.test.tsx
@@ -1167,7 +1167,7 @@ git commit -m "feat: add link management controls"
 - Modify if generated: `apps/backend/src/shared/infrastructure/database/types.ts`
 - Modify if generated: Better Auth migration files produced by `bun run auth:schema:generate`
 
-- [ ] **Step 1: Generate/apply Better Auth API key schema**
+- [x] **Step 1: Generate/apply Better Auth API key schema**
 
 Run from `apps/backend`:
 
@@ -1178,7 +1178,7 @@ bun run auth:schema:migrate
 
 Expected: Better Auth API key plugin schema exists in Better Auth-managed tables. No skrol-owned `api_keys` table is created.
 
-- [ ] **Step 2: Regenerate database types**
+- [x] **Step 2: Regenerate database types**
 
 Run from `apps/backend`:
 
@@ -1189,7 +1189,7 @@ bun run db:typecheck
 
 Expected: generated types compile. Keep generated type changes if schema changed.
 
-- [ ] **Step 3: Run backend tests**
+- [x] **Step 3: Run backend tests**
 
 Run from `apps/backend`:
 
@@ -1199,7 +1199,7 @@ bun run test
 
 Expected: PASS.
 
-- [ ] **Step 4: Run frontend tests**
+- [x] **Step 4: Run frontend tests**
 
 Run from `apps/frontend`:
 
@@ -1209,7 +1209,7 @@ bun run test
 
 Expected: PASS.
 
-- [ ] **Step 5: Run root verification**
+- [x] **Step 5: Run root verification**
 
 Run from repo root:
 
@@ -1223,7 +1223,7 @@ bunx turbo run test --filter=skrol-frontend
 
 Expected: all commands PASS. Frontend package filter is `skrol-frontend`; do not use stale `--filter=frontend` examples unless package names change.
 
-- [ ] **Step 6: Inspect final diff for scope**
+- [x] **Step 6: Inspect final diff for scope**
 
 Run from repo root:
 
@@ -1235,7 +1235,7 @@ git diff -- docs/superpowers/specs/2026-05-16-phase-3-developer-api-design.md do
 
 Expected: changes are limited to Phase 3 developer API implementation, generated schema/types, tests, spec, and plan.
 
-- [ ] **Step 7: Final commit**
+- [x] **Step 7: Final commit**
 
 ```sh
 git add docs/superpowers/specs/2026-05-16-phase-3-developer-api-design.md docs/superpowers/plans/2026-05-16-phase-3-developer-api-implementation-plan.md apps/backend apps/frontend bun.lock
