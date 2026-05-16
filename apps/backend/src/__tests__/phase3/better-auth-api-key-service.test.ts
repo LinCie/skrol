@@ -81,6 +81,35 @@ describe("BetterAuthApiKeyService", () => {
 		expect(calls).toEqual([{ query: {}, headers }]);
 	});
 
+	it("revokes API keys for the owning user", async () => {
+		const calls: unknown[] = [];
+		const service = new BetterAuthApiKeyService({
+			createApiKey: async () => {
+				throw new Error("unused");
+			},
+			listApiKeys: async () => ({ apiKeys: [] }),
+			verifyApiKey: async () => ({ valid: false, key: null }),
+			deleteApiKey: async () => null,
+			updateApiKey: async (input) => {
+				calls.push(input);
+				return null;
+			},
+		});
+
+		await expect(
+			service.revoke({ userId: "user_1", apiKeyId: "key_1" }),
+		).resolves.toBe(true);
+		expect(calls).toEqual([
+			{
+				body: {
+					keyId: "key_1",
+					userId: "user_1",
+					enabled: false,
+				},
+			},
+		]);
+	});
+
 	it("maps Better Auth missing API keys to revoke miss", async () => {
 		const notFoundError = Object.assign(new Error("API Key not found"), {
 			status: "NOT_FOUND",
@@ -111,6 +140,7 @@ describe("BetterAuthApiKeyService", () => {
 			listApiKeys: async () => ({ apiKeys: [] }),
 			verifyApiKey: async () => ({
 				valid: true,
+				userId: "wrong_user",
 				key: {
 					id: "key_1",
 					referenceId: "user_1",

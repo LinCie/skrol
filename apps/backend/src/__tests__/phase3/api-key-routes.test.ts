@@ -258,7 +258,7 @@ describe("api key wrapper routes", () => {
 		});
 	});
 
-	it("maps service failures to deterministic API errors", async () => {
+	it("maps service failures to deterministic server errors", async () => {
 		const failingService = {
 			create: async () => {
 				throw new Error("backend down");
@@ -293,10 +293,10 @@ describe("api key wrapper routes", () => {
 		);
 
 		for (const response of [createResponse, listResponse, revokeResponse]) {
-			expect(response.status).toBe(400);
+			expect(response.status).toBe(500);
 			expect(await response.json()).toEqual({
 				error: {
-					code: "validation_error",
+					code: "internal_error",
 					message: "API key request failed.",
 				},
 			});

@@ -140,8 +140,8 @@ async function runApiKeyServiceCall<T>(
 
 function serviceUnavailableError(): Response {
 	return apiError(
-		400,
-		"validation_error",
+		500,
+		"internal_error",
 		"API key request failed.",
 	);
 }

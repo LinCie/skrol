@@ -30,7 +30,6 @@ type BetterAuthListApiKeysResponse = {
 type BetterAuthVerifyApiKeyResponse = {
 	valid: boolean;
 	key: Pick<BetterAuthApiKeyRecord, "id" | "referenceId"> | null;
-	userId?: string;
 };
 
 type BetterAuthApi = {
@@ -132,7 +131,7 @@ export class BetterAuthApiKeyService implements ApiKeyService {
 	async verify(key: string): Promise<VerifyApiKeyResult> {
 		const result = await this.api.verifyApiKey({ body: { key } });
 
-		const userId = result.userId ?? result.key?.referenceId;
+		const userId = result.key?.referenceId;
 
 		if (!result.valid || !userId || !result.key?.id) {
 			return { valid: false };
