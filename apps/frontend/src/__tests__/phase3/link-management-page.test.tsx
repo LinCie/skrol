@@ -5,7 +5,7 @@ import { RouterProvider, createMemoryHistory } from '@tanstack/react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getRouter } from '../../router'
 import { authClient } from '../../lib/auth-client'
-import { deleteLink, getLink, updateLink } from '../../lib/api-client'
+import { ProductApiError, deleteLink, getLink, updateLink } from '../../lib/api-client'
 import type * as ApiClient from '../../lib/api-client'
 import type { LinkDto } from '../../lib/api-client'
 
@@ -115,8 +115,64 @@ describe('dashboard link management page', () => {
       expect(updateLinkMock).toHaveBeenCalledWith('link_123', {
         title: 'Reference Docs',
         destination_url: 'https://example.com/reference',
+        expires_at: null,
       })
     })
+  })
+
+  it('clears an existing expiration when the field is emptied', async () => {
+    getLinkMock.mockResolvedValueOnce(
+      linkWith({ expires_at: '2026-06-01T15:30:00.000Z' }),
+    )
+    updateLinkMock.mockResolvedValueOnce(linkWith({ expires_at: null }))
+
+    renderAt('/dashboard/links/link_123')
+
+    fireEvent.change(await screen.findByLabelText(/expiration date/i), {
+      target: { value: '' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+
+    await waitFor(() => {
+      expect(updateLinkMock).toHaveBeenCalledWith('link_123', {
+        title: 'Docs',
+        destination_url: 'https://example.com/docs',
+        expires_at: null,
+      })
+    })
+  })
+
+  it('shows existing expiration in local datetime form value', async () => {
+    vi.spyOn(Date.prototype, 'getTimezoneOffset').mockReturnValue(-120)
+    getLinkMock.mockResolvedValueOnce(
+      linkWith({ expires_at: '2026-06-01T15:30:00.000Z' }),
+    )
+
+    renderAt('/dashboard/links/link_123')
+
+    expect((await screen.findByLabelText(/expiration date/i)).value).toBe(
+      '2026-06-01T17:30',
+    )
+  })
+
+  it('keeps management controls visible when save fails', async () => {
+    updateLinkMock.mockRejectedValueOnce(
+      new ProductApiError('Destination URL is invalid.', {
+        code: 'invalid_url',
+        status: 400,
+      }),
+    )
+
+    renderAt('/dashboard/links/link_123')
+
+    fireEvent.change(await screen.findByRole('textbox', { name: /destination url/i }), {
+      target: { value: 'https://example.com/rejected' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+
+    expect((await screen.findByRole('alert')).textContent).toMatch(/destination url is invalid/i)
+    expect(screen.getByRole('button', { name: /save changes/i })).not.toBeNull()
+    expect(screen.getByRole('button', { name: /delete link/i })).not.toBeNull()
   })
 
   it('disables an active link', async () => {

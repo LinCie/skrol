@@ -77,7 +77,7 @@ function LinkDetailPage() {
       const input = {
         title: title.trim() || null,
         destination_url: destinationUrl.trim(),
-        ...(expiresAt ? { expires_at: new Date(expiresAt).toISOString() } : {}),
+        expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
       }
       const response = await updateLink(link.id, input)
 
@@ -162,7 +162,7 @@ function LinkDetailPage() {
     )
   }
 
-  if (error || !link) {
+  if (!link) {
     return (
       <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
         {error || 'Could not load link. Try again.'}
@@ -284,5 +284,8 @@ function formatDate(value: string) {
 }
 
 function toDateTimeLocalValue(value: string) {
-  return value.slice(0, 16)
+  const date = new Date(value)
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
+
+  return localDate.toISOString().slice(0, 16)
 }
