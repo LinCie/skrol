@@ -52,6 +52,7 @@ describe('phase 3 product API client methods', () => {
       'http://localhost:8000/api/v1/api-keys',
       {
         method: 'POST',
+        headers: { 'content-type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ name: 'CI', expires_in_seconds: 3600 }),
       },
@@ -86,6 +87,20 @@ describe('phase 3 product API client methods', () => {
     )
   })
 
+  it('encodes API key ids in delete paths', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(null, { status: 204 }))
+
+    await expect(deleteApiKey('key/1')).resolves.toBeUndefined()
+
+    expect(fetch).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/api-keys/key%2F1',
+      {
+        method: 'DELETE',
+        credentials: 'include',
+      },
+    )
+  })
+
   it('updates a link with credentials', async () => {
     const response = {
       id: 'link_1',
@@ -107,8 +122,37 @@ describe('phase 3 product API client methods', () => {
       'http://localhost:8000/api/v1/links/link_1',
       {
         method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ status: 'disabled' }),
+      },
+    )
+  })
+
+  it('encodes link ids in update and delete paths', async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(await mockJsonResponse({}))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+
+    await updateLink('link/1', { status: 'disabled' })
+    await deleteLink('link/1')
+
+    expect(fetch).toHaveBeenNthCalledWith(
+      1,
+      'http://localhost:8000/api/v1/links/link%2F1',
+      {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status: 'disabled' }),
+      },
+    )
+    expect(fetch).toHaveBeenNthCalledWith(
+      2,
+      'http://localhost:8000/api/v1/links/link%2F1',
+      {
+        method: 'DELETE',
+        credentials: 'include',
       },
     )
   })

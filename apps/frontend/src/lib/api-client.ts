@@ -88,14 +88,15 @@ export async function getLink(id: string) {
 }
 
 export async function updateLink(id: string, input: UpdateLinkInput) {
-  return productFetch<LinkDto>(`/api/v1/links/${id}`, {
+  return productFetch<LinkDto>(`/api/v1/links/${encodeURIComponent(id)}`, {
     method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
   })
 }
 
 export async function deleteLink(id: string) {
-  return productFetch<void>(`/api/v1/links/${id}`, { method: 'DELETE' })
+  return productFetch<void>(`/api/v1/links/${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
 
 export async function resolveRedirect(code: string) {
@@ -107,6 +108,7 @@ export async function resolveRedirect(code: string) {
 export async function createApiKey(input: CreateApiKeyInput) {
   return productFetch<CreateApiKeyResponse>('/api/v1/api-keys', {
     method: 'POST',
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
   })
 }
@@ -116,7 +118,9 @@ export async function listApiKeys() {
 }
 
 export async function deleteApiKey(id: string) {
-  return productFetch<void>(`/api/v1/api-keys/${id}`, { method: 'DELETE' })
+  return productFetch<void>(`/api/v1/api-keys/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  })
 }
 
 async function productFetch<T>(path: string, init: RequestInit = {}) {
