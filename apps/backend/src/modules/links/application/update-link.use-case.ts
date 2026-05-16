@@ -42,7 +42,7 @@ export class UpdateLinkUseCase {
 	constructor(private readonly deps: UpdateLinkUseCaseDependencies) {}
 
 	async execute(input: UpdateLinkInput): Promise<UpdateLinkResult> {
-		if (Object.keys(input.patch).length === 0) {
+		if (!hasRecognizedUpdateField(input.patch)) {
 			return { ok: false, code: "validation_error" };
 		}
 
@@ -61,16 +61,27 @@ export class UpdateLinkUseCase {
 		};
 
 		if ("title" in input.patch) {
+			if (input.patch.title === undefined) {
+				return { ok: false, code: "validation_error" };
+			}
+
 			patch.title = input.patch.title ?? null;
 		}
 
 		if ("expiresAt" in input.patch) {
+			if (input.patch.expiresAt === undefined) {
+				return { ok: false, code: "validation_error" };
+			}
+
 			patch.expiresAt = input.patch.expiresAt ?? null;
 		}
 
 		if ("status" in input.patch) {
 			const status = input.patch.status;
 			if (status !== "active" && status !== "disabled") {
+				return { ok: false, code: "validation_error" };
+			}
+			if (existing.status !== "active" && existing.status !== "disabled") {
 				return { ok: false, code: "validation_error" };
 			}
 
@@ -168,3 +179,12 @@ export class UpdateLinkUseCase {
 }
 
 export type { DomainBlocklistEntry };
+
+function hasRecognizedUpdateField(input: UpdateLinkInput["patch"]): boolean {
+	return (
+		"title" in input ||
+		"destinationUrl" in input ||
+		"expiresAt" in input ||
+		"status" in input
+	);
+}

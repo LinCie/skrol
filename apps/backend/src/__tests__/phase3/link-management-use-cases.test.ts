@@ -131,6 +131,68 @@ describe("link management use cases", () => {
 		expect(result).toEqual({ ok: false, code: "validation_error" });
 	});
 
+	it("UpdateLinkUseCase rejects status changes from flagged links", async () => {
+		const { repository, updates } = createRepository(makeLink({ status: "flagged" }));
+		const useCase = new UpdateLinkUseCase({
+			linksRepository: repository,
+			domainBlocklistRepository: { load: async () => [] },
+		});
+
+		const result = await useCase.execute({
+			id: "link_1",
+			ownerUserId: "user_1",
+			actorApiKeyId: null,
+			patch: { status: "active" },
+		});
+
+		expect(result).toEqual({ ok: false, code: "validation_error" });
+		expect(updates).toEqual([]);
+	});
+
+	it("UpdateLinkUseCase rejects explicit undefined title and expiration fields", async () => {
+		const { repository, updates } = createRepository();
+		const useCase = new UpdateLinkUseCase({
+			linksRepository: repository,
+			domainBlocklistRepository: { load: async () => [] },
+		});
+
+		const titleResult = await useCase.execute({
+			id: "link_1",
+			ownerUserId: "user_1",
+			actorApiKeyId: null,
+			patch: { title: undefined } as { title?: string | null },
+		});
+
+		const expiresAtResult = await useCase.execute({
+			id: "link_1",
+			ownerUserId: "user_1",
+			actorApiKeyId: null,
+			patch: { expiresAt: undefined } as { expiresAt?: Date | null },
+		});
+
+		expect(titleResult).toEqual({ ok: false, code: "validation_error" });
+		expect(expiresAtResult).toEqual({ ok: false, code: "validation_error" });
+		expect(updates).toEqual([]);
+	});
+
+	it("UpdateLinkUseCase rejects patches without recognized update fields", async () => {
+		const { repository, updates } = createRepository();
+		const useCase = new UpdateLinkUseCase({
+			linksRepository: repository,
+			domainBlocklistRepository: { load: async () => [] },
+		});
+
+		const result = await useCase.execute({
+			id: "link_1",
+			ownerUserId: "user_1",
+			actorApiKeyId: null,
+			patch: { unknown: "value" } as never,
+		});
+
+		expect(result).toEqual({ ok: false, code: "validation_error" });
+		expect(updates).toEqual([]);
+	});
+
 	it("UpdateLinkUseCase rejects unsafe destination URLs", async () => {
 		const { repository } = createRepository();
 		const useCase = new UpdateLinkUseCase({
@@ -217,24 +279,6 @@ describe("link management use cases", () => {
 				newValue: "https://example.com/next",
 			}),
 		]);
-	});
-
-	it("UpdateLinkUseCase does not audit undefined title when current title is null", async () => {
-		const { repository, auditLogs } = createRepository(makeLink({ title: null }));
-		const useCase = new UpdateLinkUseCase({
-			linksRepository: repository,
-			domainBlocklistRepository: { load: async () => [] },
-		});
-
-		const result = await useCase.execute({
-			id: "link_1",
-			ownerUserId: "user_1",
-			actorApiKeyId: "key_1",
-			patch: { title: undefined } as { title?: string | null },
-		});
-
-		expect(result.ok).toBe(true);
-		expect(auditLogs).toEqual([]);
 	});
 
 	it("DeleteLinkUseCase soft-deletes link and writes audit entry", async () => {
