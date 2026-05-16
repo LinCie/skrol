@@ -24,6 +24,26 @@ type ListLinksResponse = {
   nextCursor: string | null
 }
 
+export type ApiKeyMetadataDto = {
+  id: string
+  name: string
+  prefix: string | null
+  created_at: string
+  last_used_at: string | null
+  expires_at: string | null
+  status: 'active' | 'revoked' | 'expired'
+}
+
+export type CreateApiKeyInput = { name: string; expires_in_seconds?: number }
+export type CreateApiKeyResponse = { key: string; api_key: ApiKeyMetadataDto }
+export type ListApiKeysResponse = { items: ApiKeyMetadataDto[] }
+export type UpdateLinkInput = {
+  title?: string | null
+  destination_url?: string
+  expires_at?: string | null
+  status?: 'active' | 'disabled'
+}
+
 type RedirectDecisionResponse = {
   location: string
 }
@@ -67,10 +87,36 @@ export async function getLink(id: string) {
   return productFetch<LinkDto>(`/api/v1/links/${encodeURIComponent(id)}`)
 }
 
+export async function updateLink(id: string, input: UpdateLinkInput) {
+  return productFetch<LinkDto>(`/api/v1/links/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  })
+}
+
+export async function deleteLink(id: string) {
+  return productFetch<void>(`/api/v1/links/${id}`, { method: 'DELETE' })
+}
+
 export async function resolveRedirect(code: string) {
   return productFetch<RedirectDecisionResponse>(
     `/api/v1/redirect/${encodeURIComponent(code)}`,
   )
+}
+
+export async function createApiKey(input: CreateApiKeyInput) {
+  return productFetch<CreateApiKeyResponse>('/api/v1/api-keys', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+}
+
+export async function listApiKeys() {
+  return productFetch<ListApiKeysResponse>('/api/v1/api-keys')
+}
+
+export async function deleteApiKey(id: string) {
+  return productFetch<void>(`/api/v1/api-keys/${id}`, { method: 'DELETE' })
 }
 
 async function productFetch<T>(path: string, init: RequestInit = {}) {
