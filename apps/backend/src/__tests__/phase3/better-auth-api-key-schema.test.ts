@@ -1,9 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import { Pool } from "pg";
 
-function requireDatabaseUrl(): string | null {
-  return process.env.DATABASE_URL ?? null;
-}
+const databaseUrl = process.env.DATABASE_URL;
+const describeWithDatabase = databaseUrl ? describe : describe.skip;
 
 function hasApiKeyEndpoints(plugin: unknown): boolean {
   if (!plugin || typeof plugin !== "object") {
@@ -20,13 +19,8 @@ function hasApiKeyEndpoints(plugin: unknown): boolean {
   );
 }
 
-describe("Better Auth API Key plugin", () => {
+describeWithDatabase("Better Auth API Key plugin", () => {
   it("registers API key plugin in auth config", async () => {
-    const databaseUrl = requireDatabaseUrl();
-    if (!databaseUrl) {
-      return;
-    }
-
     const { createBetterAuthConfig } = await import(
       "../../modules/auth/infrastructure/better-auth.server"
     );
@@ -43,11 +37,6 @@ describe("Better Auth API Key plugin", () => {
   });
 
   it("includes API key table in generated schema plan", async () => {
-    const databaseUrl = requireDatabaseUrl();
-    if (!databaseUrl) {
-      return;
-    }
-
     const { inspectBetterAuthSchema } = await import(
       "../../modules/auth/infrastructure/better-auth.server"
     );

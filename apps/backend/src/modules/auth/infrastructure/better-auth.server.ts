@@ -18,7 +18,7 @@ export interface BetterAuthConfigOverrides {
 }
 
 function escapePostgresIdentifier(identifier: string): string {
-  return identifier.replaceAll('"', '""');
+  return `"${identifier.replaceAll('"', '""')}"`;
 }
 
 export function createBetterAuthPool(
