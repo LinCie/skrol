@@ -72,9 +72,11 @@ export function createApp(deps: CreateAppDependencies = {}): Elysia {
     deps.apiKeyService ??
     (betterAuthInstance
       ? new BetterAuthApiKeyService(
-          betterAuthInstance.api as Parameters<typeof BetterAuthApiKeyService>[0],
+          betterAuthInstance.api as unknown as ConstructorParameters<
+            typeof BetterAuthApiKeyService
+          >[0],
         )
-      : createNoopApiKeyService());
+      : null);
   const linksModule = deps.linksModule ?? createLazyLinksModule();
   const redirectModule = new RedirectModule({
     resolveRedirectUseCase: deps.resolveRedirectUseCase,
@@ -101,13 +103,15 @@ export function createApp(deps: CreateAppDependencies = {}): Elysia {
       handler: betterAuthHandler,
     }),
   );
-  app.use(
-    apiKeyRoutes({
-      authSessionService,
-      apiKeyService,
-      allowedOrigins: config.frontendOrigins,
-    }),
-  );
+  if (apiKeyService) {
+    app.use(
+      apiKeyRoutes({
+        authSessionService,
+        apiKeyService,
+        allowedOrigins: config.frontendOrigins,
+      }),
+    );
+  }
   app.use(
     linksApiRoutes({
       authSessionService,
@@ -134,17 +138,6 @@ export function createApp(deps: CreateAppDependencies = {}): Elysia {
   });
 
   return app;
-}
-
-function createNoopApiKeyService(): ApiKeyService {
-  return {
-    create: async () => {
-      throw new Error("API key service is not configured.");
-    },
-    list: async () => [],
-    revoke: async () => false,
-    verify: async () => ({ valid: false }),
-  };
 }
 
 function createLazyLinksModule(): Pick<

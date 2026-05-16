@@ -15,6 +15,8 @@ type ParsedCreateBody =
 	| { ok: true; name: string; expiresInSeconds?: number }
 	| { ok: false };
 
+const MAX_API_KEY_EXPIRES_IN_SECONDS = 31_536_000;
+
 export function apiKeyRoutes(deps: {
 	authSessionService: AuthSessionService;
 	apiKeyService: ApiKeyService;
@@ -33,33 +35,49 @@ export function apiKeyRoutes(deps: {
 				return apiError(400, "validation_error", "Invalid API key request.");
 			}
 
-			const created = await deps.apiKeyService.create({
-				userId: authPrincipal.userId,
-				name: parsedBody.name,
-				expiresInSeconds: parsedBody.expiresInSeconds,
-			});
+			const created = await runApiKeyServiceCall(() =>
+				deps.apiKeyService.create({
+					userId: authPrincipal.userId,
+					name: parsedBody.name,
+					expiresInSeconds: parsedBody.expiresInSeconds,
+				}),
+			);
+			if (!created.ok) {
+				return serviceUnavailableError();
+			}
 
 			set.status = 201;
-			return { key: created.key, api_key: created.apiKey };
+			return { key: created.value.key, api_key: created.value.apiKey };
 		})
 		.get("/api/v1/api-keys", async ({ authPrincipal }) => {
 			if (!authPrincipal) {
 				return apiError(401, "unauthorized", "Authentication is required.");
 			}
 
-			const items = await deps.apiKeyService.list(authPrincipal.userId);
-			return { items };
+			const items = await runApiKeyServiceCall(() =>
+				deps.apiKeyService.list(authPrincipal.userId),
+			);
+			if (!items.ok) {
+				return serviceUnavailableError();
+			}
+
+			return { items: items.value };
 		})
 		.delete("/api/v1/api-keys/:id", async ({ params, authPrincipal, set }) => {
 			if (!authPrincipal) {
 				return apiError(401, "unauthorized", "Authentication is required.");
 			}
 
-			const revoked = await deps.apiKeyService.revoke({
-				userId: authPrincipal.userId,
-				apiKeyId: params.id,
-			});
-			if (!revoked) {
+			const revoked = await runApiKeyServiceCall(() =>
+				deps.apiKeyService.revoke({
+					userId: authPrincipal.userId,
+					apiKeyId: params.id,
+				}),
+			);
+			if (!revoked.ok) {
+				return serviceUnavailableError();
+			}
+			if (!revoked.value) {
 				return apiError(404, "not_found", "API key was not found.");
 			}
 
@@ -84,7 +102,8 @@ function parseCreateBody(body: unknown): ParsedCreateBody {
 	if (
 		request.expires_in_seconds !== undefined &&
 		(!Number.isInteger(request.expires_in_seconds) ||
-			request.expires_in_seconds <= 0)
+			request.expires_in_seconds <= 0 ||
+			request.expires_in_seconds > MAX_API_KEY_EXPIRES_IN_SECONDS)
 	) {
 		return { ok: false };
 	}
@@ -94,4 +113,22 @@ function parseCreateBody(body: unknown): ParsedCreateBody {
 		name: request.name.trim(),
 		expiresInSeconds: request.expires_in_seconds,
 	};
+}
+
+async function runApiKeyServiceCall<T>(
+	call: () => Promise<T>,
+): Promise<{ ok: true; value: T } | { ok: false }> {
+	try {
+		return { ok: true, value: await call() };
+	} catch {
+		return { ok: false };
+	}
+}
+
+function serviceUnavailableError(): Response {
+	return apiError(
+		503,
+		"service_unavailable",
+		"API key service is unavailable.",
+	);
 }
