@@ -15,6 +15,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CodeRouteImport } from './routes/$code'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardLinksRouteImport } from './routes/dashboard.links'
+import { Route as DashboardApiKeysRouteImport } from './routes/dashboard.api-keys'
 import { Route as DashboardLinksNewRouteImport } from './routes/dashboard.links.new'
 import { Route as DashboardLinksIdRouteImport } from './routes/dashboard.links.$id'
 
@@ -48,6 +49,11 @@ const DashboardLinksRoute = DashboardLinksRouteImport.update({
   path: '/links',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardApiKeysRoute = DashboardApiKeysRouteImport.update({
+  id: '/api-keys',
+  path: '/api-keys',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardLinksNewRoute = DashboardLinksNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/dashboard/api-keys': typeof DashboardApiKeysRoute
   '/dashboard/links': typeof DashboardLinksRouteWithChildren
   '/dashboard/links/$id': typeof DashboardLinksIdRoute
   '/dashboard/links/new': typeof DashboardLinksNewRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/dashboard/api-keys': typeof DashboardApiKeysRoute
   '/dashboard/links': typeof DashboardLinksRouteWithChildren
   '/dashboard/links/$id': typeof DashboardLinksIdRoute
   '/dashboard/links/new': typeof DashboardLinksNewRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/dashboard/api-keys': typeof DashboardApiKeysRoute
   '/dashboard/links': typeof DashboardLinksRouteWithChildren
   '/dashboard/links/$id': typeof DashboardLinksIdRoute
   '/dashboard/links/new': typeof DashboardLinksNewRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/signup'
+    | '/dashboard/api-keys'
     | '/dashboard/links'
     | '/dashboard/links/$id'
     | '/dashboard/links/new'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/signup'
+    | '/dashboard/api-keys'
     | '/dashboard/links'
     | '/dashboard/links/$id'
     | '/dashboard/links/new'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/signup'
+    | '/dashboard/api-keys'
     | '/dashboard/links'
     | '/dashboard/links/$id'
     | '/dashboard/links/new'
@@ -175,6 +187,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardLinksRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/api-keys': {
+      id: '/dashboard/api-keys'
+      path: '/api-keys'
+      fullPath: '/dashboard/api-keys'
+      preLoaderRoute: typeof DashboardApiKeysRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/links/new': {
       id: '/dashboard/links/new'
       path: '/new'
@@ -207,10 +226,12 @@ const DashboardLinksRouteWithChildren = DashboardLinksRoute._addFileChildren(
 )
 
 interface DashboardRouteChildren {
+  DashboardApiKeysRoute: typeof DashboardApiKeysRoute
   DashboardLinksRoute: typeof DashboardLinksRouteWithChildren
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardApiKeysRoute: DashboardApiKeysRoute,
   DashboardLinksRoute: DashboardLinksRouteWithChildren,
 }
 

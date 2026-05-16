@@ -53,6 +53,10 @@ function Dashboard() {
           <h1 className="text-3xl font-bold tracking-tight text-slate-950">
             Dashboard
           </h1>
+          <nav className="mt-4 flex gap-4 text-sm font-medium text-slate-700">
+            <Link to="/dashboard/links">Links</Link>
+            <Link to="/dashboard/api-keys">API keys</Link>
+          </nav>
         </div>
         <button
           className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-800 disabled:cursor-not-allowed disabled:text-slate-400"
@@ -79,16 +83,29 @@ function Dashboard() {
 
 function DashboardHome() {
   return (
-    <div className="rounded-2xl border border-slate-200 p-8">
-      <h2 className="text-2xl font-bold tracking-tight text-slate-950">
-        Manage your short links
-      </h2>
-      <p className="mt-2 text-sm text-slate-600">
-        View existing links or create a new short link from your dashboard.
-      </p>
-      <Link className="mt-4 inline-flex font-medium text-slate-950 underline" to="/dashboard/links">
-        View links
-      </Link>
+    <div className="grid gap-4 sm:grid-cols-2">
+      <div className="rounded-2xl border border-slate-200 p-8">
+        <h2 className="text-2xl font-bold tracking-tight text-slate-950">
+          Manage your short links
+        </h2>
+        <p className="mt-2 text-sm text-slate-600">
+          View existing links or create a new short link from your dashboard.
+        </p>
+        <Link className="mt-4 inline-flex font-medium text-slate-950 underline" to="/dashboard/links">
+          View links
+        </Link>
+      </div>
+      <div className="rounded-2xl border border-slate-200 p-8">
+        <h2 className="text-2xl font-bold tracking-tight text-slate-950">
+          Manage API keys
+        </h2>
+        <p className="mt-2 text-sm text-slate-600">
+          Create and revoke API keys for programmatic access.
+        </p>
+        <Link className="mt-4 inline-flex font-medium text-slate-950 underline" to="/dashboard/api-keys">
+          View API keys
+        </Link>
+      </div>
     </div>
   )
 }
