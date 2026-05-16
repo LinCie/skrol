@@ -103,6 +103,20 @@ export class LinksRepositoryImpl implements LinksRepository {
 		return row ? Link.create(row) : null;
 	}
 
+	async findOwnedLinkForRead(input: {
+		userId: string;
+		linkId: string;
+	}): Promise<Link | null> {
+		const row = await this.db
+			.selectFrom("links")
+			.selectAll()
+			.where("id", "=", input.linkId)
+			.where("userId", "=", input.userId)
+			.executeTakeFirst();
+
+		return row ? Link.create(row) : null;
+	}
+
 	async updateLinkForOwner(
 		input: UpdateLinkRepositoryInput,
 	): Promise<Link | null> {

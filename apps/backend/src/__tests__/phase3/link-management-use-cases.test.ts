@@ -39,6 +39,7 @@ function createRepository(initialLink: Link | null = makeLink()) {
 		createLink: async () => makeLink(),
 		listByOwner: async () => ({ items: [], nextCursor: null }),
 		findByIdForOwner: async () => initialLink,
+		findOwnedLinkForRead: async () => initialLink,
 		updateLinkForOwner: async (input) => {
 			updates.push(input);
 			if (!initialLink) {

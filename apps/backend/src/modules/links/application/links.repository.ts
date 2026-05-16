@@ -48,6 +48,10 @@ export interface LinksRepository {
   createLink(input: CreateLinkRepositoryInput): Promise<Link>;
   listByOwner(input: ListLinksByOwnerInput): Promise<ListLinksByOwnerResult>;
   findByIdForOwner(id: string, ownerUserId: string): Promise<Link | null>;
+  findOwnedLinkForRead(input: {
+    userId: string;
+    linkId: string;
+  }): Promise<Link | null>;
   updateLinkForOwner(input: UpdateLinkRepositoryInput): Promise<Link | null>;
   softDeleteLinkForOwner(input: {
     id: string;

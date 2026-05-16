@@ -43,7 +43,7 @@ Modify these files:
 - Create: `apps/backend/src/__tests__/phase4/get-link-analytics.use-case.test.ts`
 - Modify: `apps/backend/src/modules/analytics/application/analytics.repository.ts`
 
-- [ ] **Step 1: Write failing use-case tests that call real production symbols**
+- [x] **Step 1: Write failing use-case tests that call real production symbols**
 
 ```ts
 import { describe, expect, it } from "bun:test";
@@ -100,7 +100,7 @@ describe("GetLinkAnalyticsUseCase", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify failure**
+- [x] **Step 2: Run test to verify failure**
 
 Run from `apps/backend`:
 
@@ -110,7 +110,7 @@ bun test src/__tests__/phase4/get-link-analytics.use-case.test.ts
 
 Expected: FAIL because `GetLinkAnalyticsUseCase` and/or constructor contracts do not exist yet.
 
-- [ ] **Step 3: Add analytics repository contract methods**
+- [x] **Step 3: Add analytics repository contract methods**
 
 ```ts
 export interface AnalyticsRepository {
@@ -138,7 +138,7 @@ export interface AnalyticsRepository {
 }
 ```
 
-- [ ] **Step 4: Re-run test for compilation progress**
+- [x] **Step 4: Re-run test for compilation progress**
 
 Run:
 
@@ -148,7 +148,7 @@ bun test src/__tests__/phase4/get-link-analytics.use-case.test.ts
 
 Expected: still FAIL, now closer (missing use case implementation).
 
-- [ ] **Step 5: Commit task**
+- [x] **Step 5: Commit task**
 
 ```sh
 git add apps/backend/src/__tests__/phase4/get-link-analytics.use-case.test.ts apps/backend/src/modules/analytics/application/analytics.repository.ts
@@ -165,7 +165,7 @@ git commit -m "test: lock phase 4 analytics contract"
 - Modify: `apps/backend/src/modules/redirect/application/resolve-redirect.use-case.ts`
 - Modify: `apps/backend/src/modules/redirect/application/click-event.repository.ts`
 
-- [ ] **Step 1: Write failing redirect capture regression tests**
+- [x] **Step 1: Write failing redirect capture regression tests**
 
 ```ts
 import { describe, expect, it } from "bun:test";
@@ -186,7 +186,7 @@ describe("redirect analytics capture", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify failure**
+- [x] **Step 2: Run test to verify failure**
 
 Run:
 
@@ -196,7 +196,7 @@ bun test src/__tests__/phase4/redirect-analytics-capture.test.ts
 
 Expected: FAIL until redirect use case is invoked and assertions inspect real behavior.
 
-- [ ] **Step 3: Patch redirect metadata extraction minimally**
+- [x] **Step 3: Patch redirect metadata extraction minimally**
 
 ```ts
 function normalizeNullableLabel(value: string | null | undefined): string | null {
@@ -215,7 +215,7 @@ isBot: detected.isBot,
 
 Keep rule: do not store full user-agent or raw IP.
 
-- [ ] **Step 4: Re-run redirect route tests and new phase4 test**
+- [x] **Step 4: Re-run redirect route tests and new phase4 test**
 
 Run:
 
@@ -225,7 +225,7 @@ bun test src/__tests__/phase1/public-redirect-route.test.ts src/__tests__/phase4
 
 Expected: PASS and existing successful redirect-decision behavior preserved.
 
-- [ ] **Step 5: Commit task**
+- [x] **Step 5: Commit task**
 
 ```sh
 git add apps/backend/src/__tests__/phase4/redirect-analytics-capture.test.ts apps/backend/src/modules/redirect/application/resolve-redirect.use-case.ts apps/backend/src/modules/redirect/application/click-event.repository.ts
@@ -245,7 +245,7 @@ git commit -m "fix: enrich redirect analytics metadata safely"
 - Modify: `apps/backend/src/modules/links/infrastructure/repositories/links.repository.impl.ts`
 - Modify: `apps/backend/src/__tests__/phase4/get-link-analytics.use-case.test.ts`
 
-- [ ] **Step 1: Expand failing tests for time-series and breakdown policy**
+- [x] **Step 1: Expand failing tests for time-series and breakdown policy**
 
 ```ts
 it("passes deterministic last-30-day UTC window to repository", async () => {
@@ -288,7 +288,7 @@ it("maps null dimensions to direct/unknown via real mapper/repository behavior",
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 ```sh
 bun test src/__tests__/phase4/get-link-analytics.use-case.test.ts
@@ -296,7 +296,7 @@ bun test src/__tests__/phase4/get-link-analytics.use-case.test.ts
 
 Expected: FAIL until use case/repository implementation exists.
 
-- [ ] **Step 3: Implement use case with injected clock and owner/deleted checks**
+- [x] **Step 3: Implement use case with injected clock and owner/deleted checks**
 
 ```ts
 export class GetLinkAnalyticsUseCase {
@@ -336,7 +336,7 @@ export class GetLinkAnalyticsUseCase {
 }
 ```
 
-- [ ] **Step 4: Implement aggregate SQL queries with deterministic policies**
+- [x] **Step 4: Implement aggregate SQL queries with deterministic policies**
 
 ```ts
 // examples inside repository impl
@@ -353,7 +353,7 @@ Ensure:
 - return `countries: []` only when country support is implemented but no country rows exist
 - device aggregation behavior explicit: return categories present in stored events (not synthetic zero-count categories)
 
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 5: Run focused tests**
 
 ```sh
 bun test src/__tests__/phase4/get-link-analytics.use-case.test.ts
@@ -361,7 +361,7 @@ bun test src/__tests__/phase4/get-link-analytics.use-case.test.ts
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit task**
+- [x] **Step 6: Commit task**
 
 ```sh
 git add apps/backend/src/modules/analytics/application/get-link-analytics.use-case.ts apps/backend/src/modules/analytics/infrastructure/repositories/analytics.repository.impl.ts apps/backend/src/modules/analytics/analytics.module.ts apps/backend/src/modules/links/application/links.repository.ts apps/backend/src/modules/links/infrastructure/repositories/links.repository.impl.ts apps/backend/src/__tests__/phase4/get-link-analytics.use-case.test.ts
