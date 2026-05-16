@@ -1,21 +1,36 @@
 import { describe, expect, it } from "bun:test";
 import { apiKey } from "@better-auth/api-key";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const thisDir = dirname(fileURLToPath(import.meta.url));
-const pluginDeclarationsPath = resolve(
-  thisDir,
-  "../../../node_modules/@better-auth/api-key/dist/index-CajK1bx0.d.mts",
-);
+const pluginModuleUrl = import.meta.resolve("@better-auth/api-key");
+const pluginDistDir = dirname(fileURLToPath(pluginModuleUrl));
+
+async function resolvePluginDeclarationsPath(): Promise<string> {
+  const distEntries = await readdir(pluginDistDir);
+  const hashedDeclarationEntry = distEntries.find((entry) =>
+    /^index-.*\.d\.mts$/.test(entry),
+  );
+
+  if (hashedDeclarationEntry) {
+    return resolve(pluginDistDir, hashedDeclarationEntry);
+  }
+
+  if (distEntries.includes("index.d.mts")) {
+    return resolve(pluginDistDir, "index.d.mts");
+  }
+
+  throw new Error("Could not locate @better-auth/api-key declaration file.");
+}
 
 describe("Better Auth API Key plugin adapter discovery", () => {
   it("documents required API key operations before service wiring", async () => {
     const plugin = apiKey({ defaultPrefix: "sk_live_" }) as {
       endpoints?: Record<string, unknown>;
     };
-    const declarationText = await readFile(pluginDeclarationsPath, "utf8");
+    const declarationPath = await resolvePluginDeclarationsPath();
+    const declarationText = await readFile(declarationPath, "utf8");
 
     expect(plugin.endpoints).toBeDefined();
 
