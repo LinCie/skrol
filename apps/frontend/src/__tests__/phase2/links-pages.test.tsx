@@ -50,6 +50,8 @@ function mockJsonResponse(body: unknown, status = 200) {
 
 describe('dashboard links pages', () => {
   beforeEach(() => {
+    vi.stubEnv('VITE_API_BASE_URL', '')
+    vi.stubEnv('VITE_AUTH_BASE_URL', '')
     getSessionMock.mockResolvedValue(authenticatedSession)
     vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
     vi.stubGlobal('fetch', vi.fn())
@@ -57,6 +59,7 @@ describe('dashboard links pages', () => {
 
   afterEach(() => {
     cleanup()
+    vi.unstubAllEnvs()
     vi.unstubAllGlobals()
     vi.restoreAllMocks()
     vi.clearAllMocks()
