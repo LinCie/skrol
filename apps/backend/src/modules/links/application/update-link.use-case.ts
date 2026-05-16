@@ -103,7 +103,7 @@ export class UpdateLinkUseCase {
 			return { ok: false, code: "not_found" };
 		}
 
-		for (const auditLog of this.buildAuditLogs(input, existing, patch.updatedAt)) {
+		for (const auditLog of this.buildAuditLogs(input, existing, patch)) {
 			await this.deps.linksRepository.createAuditLog(auditLog);
 		}
 
@@ -113,39 +113,36 @@ export class UpdateLinkUseCase {
 	private buildAuditLogs(
 		input: UpdateLinkInput,
 		existing: Link,
-		createdAt: Date,
+		patch: UpdateLinkRepositoryInput,
 	): CreateLinkAuditLogInput[] {
 		const base = {
 			linkId: input.id,
 			userId: input.ownerUserId,
 			actorApiKeyId: input.actorApiKeyId ?? null,
-			createdAt,
+			createdAt: patch.updatedAt,
 		};
 		const logs: CreateLinkAuditLogInput[] = [];
 
-		if ("title" in input.patch && input.patch.title !== existing.title) {
+		if ("title" in patch && patch.title !== existing.title) {
 			logs.push({
 				...base,
 				action: "title_changed",
 				previousValue: existing.title,
-				newValue: input.patch.title ?? null,
+				newValue: patch.title,
 			});
 		}
 
-		if (
-			"destinationUrl" in input.patch &&
-			input.patch.destinationUrl !== existing.destinationUrl
-		) {
+		if ("destinationUrl" in patch && patch.destinationUrl !== existing.destinationUrl) {
 			logs.push({
 				...base,
 				action: "destination_url_changed",
 				previousValue: existing.destinationUrl,
-				newValue: input.patch.destinationUrl,
+				newValue: patch.destinationUrl,
 			});
 		}
 
-		if ("expiresAt" in input.patch) {
-			const nextExpiresAt = input.patch.expiresAt ?? null;
+		if ("expiresAt" in patch) {
+			const nextExpiresAt = patch.expiresAt;
 			if (nextExpiresAt?.getTime() !== existing.expiresAt?.getTime()) {
 				logs.push({
 					...base,
@@ -156,13 +153,13 @@ export class UpdateLinkUseCase {
 			}
 		}
 
-		if ("status" in input.patch && input.patch.status !== existing.status) {
+		if ("status" in patch && patch.status !== existing.status) {
 			logs.push({
 				...base,
 				action:
-					input.patch.status === "disabled" ? "link_disabled" : "link_reenabled",
+					patch.status === "disabled" ? "link_disabled" : "link_reenabled",
 				previousValue: existing.status,
-				newValue: input.patch.status,
+				newValue: patch.status,
 			});
 		}
 

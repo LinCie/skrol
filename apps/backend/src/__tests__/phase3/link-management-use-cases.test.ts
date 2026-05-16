@@ -192,6 +192,51 @@ describe("link management use cases", () => {
 		]);
 	});
 
+	it("UpdateLinkUseCase audits normalized destination URL changes", async () => {
+		const { repository, updates, auditLogs } = createRepository();
+		const useCase = new UpdateLinkUseCase({
+			linksRepository: repository,
+			domainBlocklistRepository: { load: async () => [] },
+		});
+
+		const result = await useCase.execute({
+			id: "link_1",
+			ownerUserId: "user_1",
+			actorApiKeyId: "key_1",
+			patch: { destinationUrl: "https://Example.COM:443/next" },
+		});
+
+		expect(result.ok).toBe(true);
+		expect(updates[0]).toMatchObject({
+			destinationUrl: "https://example.com/next",
+		});
+		expect(auditLogs).toEqual([
+			expect.objectContaining({
+				action: "destination_url_changed",
+				previousValue: "https://example.com/start",
+				newValue: "https://example.com/next",
+			}),
+		]);
+	});
+
+	it("UpdateLinkUseCase does not audit undefined title when current title is null", async () => {
+		const { repository, auditLogs } = createRepository(makeLink({ title: null }));
+		const useCase = new UpdateLinkUseCase({
+			linksRepository: repository,
+			domainBlocklistRepository: { load: async () => [] },
+		});
+
+		const result = await useCase.execute({
+			id: "link_1",
+			ownerUserId: "user_1",
+			actorApiKeyId: "key_1",
+			patch: { title: undefined } as { title?: string | null },
+		});
+
+		expect(result.ok).toBe(true);
+		expect(auditLogs).toEqual([]);
+	});
+
 	it("DeleteLinkUseCase soft-deletes link and writes audit entry", async () => {
 		const { repository, softDeletes, auditLogs } = createRepository();
 		const useCase = new DeleteLinkUseCase({ linksRepository: repository });
