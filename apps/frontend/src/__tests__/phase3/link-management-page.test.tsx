@@ -150,9 +150,14 @@ describe('dashboard link management page', () => {
 
     renderAt('/dashboard/links/link_123')
 
-    expect((await screen.findByLabelText(/expiration date/i)).value).toBe(
-      '2026-06-01T17:30',
-    )
+    const expiresAtInput = await screen.findByLabelText(/expiration date/i)
+
+    expect(expiresAtInput).toBeInstanceOf(HTMLInputElement)
+    if (!(expiresAtInput instanceof HTMLInputElement)) {
+      throw new Error('Expected expiration date input')
+    }
+
+    expect(expiresAtInput.value).toBe('2026-06-01T17:30')
   })
 
   it('keeps management controls visible when save fails', async () => {
