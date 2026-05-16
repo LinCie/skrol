@@ -172,6 +172,22 @@ describe('dashboard api keys page', () => {
     fireEvent.click(await screen.findByRole('button', { name: /copy key/i }))
 
     expect((await screen.findByRole('alert')).textContent).toMatch(/could not copy/i)
+    expect(screen.getByText('Production')).not.toBeNull()
+  })
+
+  it('keeps loaded keys visible when create fails', async () => {
+    createApiKeyMock.mockRejectedValueOnce(new Error('server unavailable'))
+
+    renderAt('/dashboard/api-keys')
+
+    fireEvent.change(await screen.findByRole('textbox', { name: /key name/i }), {
+      target: { value: 'CLI' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /create api key/i }))
+
+    expect((await screen.findByRole('alert')).textContent).toMatch(/could not create/i)
+    expect(screen.getByText('Production')).not.toBeNull()
+    expect(screen.getByRole('button', { name: /revoke production/i })).not.toBeNull()
   })
 
   it('asks confirmation before revoking an api key', async () => {

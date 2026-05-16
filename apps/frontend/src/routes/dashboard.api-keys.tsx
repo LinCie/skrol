@@ -14,7 +14,8 @@ function ApiKeysPage() {
   const [createdKey, setCreatedKey] = useState<string | undefined>()
   const [isLoading, setIsLoading] = useState(true)
   const [isCreating, setIsCreating] = useState(false)
-  const [error, setError] = useState<string | undefined>()
+  const [loadError, setLoadError] = useState<string | undefined>()
+  const [actionError, setActionError] = useState<string | undefined>()
 
   useEffect(() => {
     let isCurrent = true
@@ -25,11 +26,11 @@ function ApiKeysPage() {
 
         if (isCurrent) {
           setApiKeys((currentApiKeys) => mergeApiKeys(currentApiKeys, response.items))
-          setError(undefined)
+          setLoadError(undefined)
         }
       } catch {
         if (isCurrent) {
-          setError('Could not load API keys. Try again.')
+          setLoadError('Could not load API keys. Try again.')
         }
       } finally {
         if (isCurrent) {
@@ -47,7 +48,7 @@ function ApiKeysPage() {
 
   async function handleCreate(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setError(undefined)
+    setActionError(undefined)
     setIsCreating(true)
 
     try {
@@ -65,7 +66,7 @@ function ApiKeysPage() {
       setName('')
       setExpiresInSeconds('')
     } catch {
-      setError('Could not create API key. Try again.')
+      setActionError('Could not create API key. Try again.')
     } finally {
       setIsCreating(false)
     }
@@ -76,13 +77,13 @@ function ApiKeysPage() {
       return
     }
 
-    setError(undefined)
+    setActionError(undefined)
 
     try {
       await deleteApiKey(apiKey.id)
       setApiKeys((currentApiKeys) => currentApiKeys.filter((item) => item.id !== apiKey.id))
     } catch {
-      setError('Could not revoke API key. Try again.')
+      setActionError('Could not revoke API key. Try again.')
     }
   }
 
@@ -93,11 +94,13 @@ function ApiKeysPage() {
 
     try {
       await navigator.clipboard.writeText(createdKey)
-      setError(undefined)
+      setActionError(undefined)
     } catch {
-      setError('Could not copy API key. Copy it manually.')
+      setActionError('Could not copy API key. Copy it manually.')
     }
   }
+
+  const error = actionError ?? loadError
 
   return (
     <div className="space-y-6">
@@ -167,7 +170,7 @@ function ApiKeysPage() {
         </p>
       ) : null}
 
-      {!isLoading && !error && apiKeys.length === 0 ? (
+      {!isLoading && !loadError && apiKeys.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 p-8">
           <h3 className="text-lg font-semibold text-slate-950">No API keys yet</h3>
           <p className="mt-2 text-sm text-slate-600">
@@ -176,7 +179,7 @@ function ApiKeysPage() {
         </div>
       ) : null}
 
-      {!isLoading && !error && apiKeys.length > 0 ? (
+      {!isLoading && !loadError && apiKeys.length > 0 ? (
         <div className="overflow-x-auto rounded-2xl border border-slate-200">
           <table className="min-w-full divide-y divide-slate-200 text-sm">
             <thead className="bg-slate-50 text-left text-slate-600">
