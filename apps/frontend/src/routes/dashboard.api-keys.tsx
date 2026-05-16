@@ -24,7 +24,7 @@ function ApiKeysPage() {
         const response = await listApiKeys()
 
         if (isCurrent) {
-          setApiKeys(response.items)
+          setApiKeys((currentApiKeys) => mergeApiKeys(currentApiKeys, response.items))
           setError(undefined)
         }
       } catch {
@@ -87,8 +87,15 @@ function ApiKeysPage() {
   }
 
   async function handleCopyCreatedKey() {
-    if (createdKey) {
+    if (!createdKey) {
+      return
+    }
+
+    try {
       await navigator.clipboard.writeText(createdKey)
+      setError(undefined)
+    } catch {
+      setError('Could not copy API key. Copy it manually.')
     }
   }
 
@@ -218,4 +225,15 @@ function formatDate(value: string) {
 
 function formatOptionalDate(value: string | null) {
   return value ? formatDate(value) : 'Never'
+}
+
+function mergeApiKeys(currentApiKeys: ApiKeyMetadataDto[], loadedApiKeys: ApiKeyMetadataDto[]) {
+  const loadedById = new Map(loadedApiKeys.map((apiKey) => [apiKey.id, apiKey]))
+  const merged = currentApiKeys.map((apiKey) => loadedById.get(apiKey.id) ?? apiKey)
+  const currentIds = new Set(currentApiKeys.map((apiKey) => apiKey.id))
+
+  return [
+    ...merged,
+    ...loadedApiKeys.filter((apiKey) => !currentIds.has(apiKey.id)),
+  ]
 }

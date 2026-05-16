@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { RouterProvider, createMemoryHistory } from '@tanstack/react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getRouter } from '../../router'
@@ -132,6 +132,46 @@ describe('dashboard api keys page', () => {
       screen.getByText('For security, Skrol will not show the full key again.'),
     ).not.toBeNull()
     expect(screen.getByText('sk_live_secret_new_key')).not.toBeNull()
+  })
+
+  it('keeps newly created key metadata when initial list resolves late', async () => {
+    let resolveList: ((value: { items: typeof apiKeys }) => void) | undefined
+    listApiKeysMock.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveList = resolve
+      }),
+    )
+
+    renderAt('/dashboard/api-keys')
+
+    fireEvent.change(await screen.findByRole('textbox', { name: /key name/i }), {
+      target: { value: 'CLI' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /create api key/i }))
+
+    expect(await screen.findByRole('heading', { name: 'Copy this key now' })).not.toBeNull()
+    resolveList?.({ items: apiKeys })
+
+    expect(await screen.findByText('Production')).not.toBeNull()
+    expect(screen.getByText('CLI')).not.toBeNull()
+    expect(within(screen.getByRole('table')).queryByText('sk_live_secret_new_key')).toBeNull()
+  })
+
+  it('shows copy error when clipboard write fails', async () => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: vi.fn().mockRejectedValue(new Error('denied')) },
+    })
+
+    renderAt('/dashboard/api-keys')
+
+    fireEvent.change(await screen.findByRole('textbox', { name: /key name/i }), {
+      target: { value: 'CLI' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /create api key/i }))
+    fireEvent.click(await screen.findByRole('button', { name: /copy key/i }))
+
+    expect((await screen.findByRole('alert')).textContent).toMatch(/could not copy/i)
   })
 
   it('asks confirmation before revoking an api key', async () => {
