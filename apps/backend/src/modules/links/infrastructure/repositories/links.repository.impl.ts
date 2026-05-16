@@ -2,12 +2,16 @@ import {
 	getDatabase,
 	type PostgresClient,
 } from "@/shared/infrastructure/database";
+import type { Links } from "@/shared/infrastructure/database/types";
 import { Link } from "@/modules/links/domain/link.entity";
+import type { Updateable } from "kysely";
 import type {
+	CreateLinkAuditLogInput,
 	CreateLinkRepositoryInput,
 	ListLinksByOwnerInput,
 	ListLinksByOwnerResult,
 	LinksRepository,
+	UpdateLinkRepositoryInput,
 } from "../../application/links.repository";
 
 export class LinksRepositoryImpl implements LinksRepository {
@@ -97,5 +101,62 @@ export class LinksRepositoryImpl implements LinksRepository {
 			.executeTakeFirst();
 
 		return row ? Link.create(row) : null;
+	}
+
+	async updateLinkForOwner(
+		input: UpdateLinkRepositoryInput,
+	): Promise<Link | null> {
+		const patch: Updateable<Links> = { updatedAt: input.updatedAt };
+		if ("title" in input) patch.title = input.title ?? null;
+		if ("destinationUrl" in input) patch.destinationUrl = input.destinationUrl;
+		if ("expiresAt" in input) patch.expiresAt = input.expiresAt ?? null;
+		if ("status" in input) patch.status = input.status;
+
+		const row = await this.db
+			.updateTable("links")
+			.set(patch)
+			.where("id", "=", input.id)
+			.where("userId", "=", input.userId)
+			.where("deletedAt", "is", null)
+			.returningAll()
+			.executeTakeFirst();
+
+		return row ? Link.create(row) : null;
+	}
+
+	async softDeleteLinkForOwner(input: {
+		id: string;
+		userId: string;
+		deletedAt: Date;
+	}): Promise<Link | null> {
+		const row = await this.db
+			.updateTable("links")
+			.set({
+				status: "deleted",
+				deletedAt: input.deletedAt,
+				updatedAt: input.deletedAt,
+			})
+			.where("id", "=", input.id)
+			.where("userId", "=", input.userId)
+			.where("deletedAt", "is", null)
+			.returningAll()
+			.executeTakeFirst();
+
+		return row ? Link.create(row) : null;
+	}
+
+	async createAuditLog(input: CreateLinkAuditLogInput): Promise<void> {
+		await this.db
+			.insertInto("linkAuditLogs")
+			.values({
+				linkId: input.linkId,
+				userId: input.userId,
+				actorApiKeyId: input.actorApiKeyId,
+				action: input.action,
+				previousValue: JSON.stringify(input.previousValue),
+				newValue: JSON.stringify(input.newValue),
+				createdAt: input.createdAt,
+			})
+			.execute();
 	}
 }
