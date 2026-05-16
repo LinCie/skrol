@@ -9,6 +9,8 @@ import {
 } from "@/modules/users/infrastructure/user-profiles.repository";
 import config from "@/shared/config";
 
+type BetterAuthPluginOption = NonNullable<BetterAuthOptions["plugins"]>[number];
+
 export interface BetterAuthConfigOverrides {
   database: BetterAuthOptions["database"];
   baseURL?: string;
@@ -48,7 +50,7 @@ export function createBetterAuthConfig(
     plugins: [
       apiKey({
         defaultPrefix: "sk_live_",
-      }),
+      }) as unknown as BetterAuthPluginOption,
     ],
   };
 
