@@ -175,6 +175,26 @@ describe('dashboard api keys page', () => {
     expect(screen.getByText('Production')).not.toBeNull()
   })
 
+  it('copies the one-time key value', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    })
+
+    renderAt('/dashboard/api-keys')
+
+    fireEvent.change(await screen.findByRole('textbox', { name: /key name/i }), {
+      target: { value: 'CLI' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /create api key/i }))
+    fireEvent.click(await screen.findByRole('button', { name: /copy key/i }))
+
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalledWith('sk_live_secret_new_key')
+    })
+  })
+
   it('keeps loaded keys visible when create fails', async () => {
     createApiKeyMock.mockRejectedValueOnce(new Error('server unavailable'))
 
