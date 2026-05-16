@@ -150,7 +150,7 @@ describe("requireSameOriginForSessionWrite", () => {
 		});
 	});
 
-	it("rejects session-authenticated writes when Origin is missing even if Referer is allowed", async () => {
+	it("allows session-authenticated writes when Origin is missing and Referer origin is allowed", async () => {
 		const app = new Elysia()
 			.decorate("authPrincipal", {
 				authSource: "session",
@@ -171,13 +171,7 @@ describe("requireSameOriginForSessionWrite", () => {
 			}),
 		);
 
-		expect(response.status).toBe(403);
-		expect(await response.json()).toEqual({
-			error: {
-				code: "validation_error",
-				message: "Invalid request origin.",
-			},
-		});
+		expect(response.status).toBe(200);
 	});
 
 	it("allows session-authenticated writes when Origin is allowed", async () => {

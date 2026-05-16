@@ -4,6 +4,18 @@ import { apiError } from "../../../shared/presentation/api-error";
 
 const WRITE_METHODS = new Set(["POST", "PATCH", "PUT", "DELETE"]);
 
+function originFromReferer(referer: string | null): string | null {
+	if (!referer) {
+		return null;
+	}
+
+	try {
+		return new URL(referer).origin;
+	} catch {
+		return null;
+	}
+}
+
 export function requireSameOriginForSessionWrite(deps: {
 	allowedOrigins: string[];
 }) {
@@ -24,7 +36,9 @@ export function requireSameOriginForSessionWrite(deps: {
 				return;
 			}
 
-			const origin = request.headers.get("origin");
+			const origin =
+				request.headers.get("origin") ??
+				originFromReferer(request.headers.get("referer"));
 
 			if (origin && allowed.has(origin)) {
 				return;
