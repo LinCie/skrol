@@ -4,7 +4,7 @@ import { requireSession } from "@/modules/auth/presentation/session-guard";
 import { normalizeAlias } from "@/modules/links/domain/alias-policy";
 import type { Link } from "@/modules/links/domain/link.entity";
 import type { LinksModule } from "@/modules/links/links.module";
-import { apiError } from "@/modules/shared/presentation/api-error";
+import { apiError } from "@/shared/presentation/api-error";
 
 export interface LinksApiRoutesDependencies {
 	authSessionService: AuthSessionService;

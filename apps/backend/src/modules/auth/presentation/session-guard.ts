@@ -1,7 +1,7 @@
 import { Elysia } from "elysia";
 import type { AuthPrincipal } from "@/modules/auth/application/auth-principal";
 import type { AuthSessionService } from "@/modules/auth/application/auth-session.service";
-import { apiError } from "@/modules/shared/presentation/api-error";
+import { apiError } from "@/shared/presentation/api-error";
 
 export type RequireSessionDependencies = Pick<
 	AuthSessionService,
