@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createLink, listLinks } from '../../lib/api-client'
+import { createLink, listLinks, resolveRedirect } from '../../lib/api-client'
 
 function mockJsonResponse(body: unknown, status = 200) {
   return Promise.resolve(
@@ -63,6 +63,20 @@ describe('product API client origin resolution', () => {
     await listLinks()
 
     expect(fetch).toHaveBeenCalledWith('/api/v1/links?limit=20', {
+      credentials: 'include',
+    })
+  })
+
+  it('resolves redirect decisions through product API base URL', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:8000')
+    const fetchMock = vi.mocked(fetch)
+    fetchMock.mockResolvedValueOnce(await mockJsonResponse({ location: 'https://example.com/docs' }))
+
+    await expect(resolveRedirect('docs')).resolves.toEqual({
+      location: 'https://example.com/docs',
+    })
+
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/api/v1/redirect/docs', {
       credentials: 'include',
     })
   })

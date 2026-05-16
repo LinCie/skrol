@@ -4,6 +4,7 @@ import { requireSession } from "@/modules/auth/presentation/session-guard";
 import { normalizeAlias } from "@/modules/links/domain/alias-policy";
 import type { Link } from "@/modules/links/domain/link.entity";
 import type { LinksModule } from "@/modules/links/links.module";
+import config from "@/shared/config";
 import { apiError } from "@/shared/presentation/api-error";
 
 export interface LinksApiRoutesDependencies {
@@ -19,7 +20,7 @@ const API_ALIAS_REGEX = /^[a-z0-9_-]{3,64}$/;
 export function linksApiRoutes(deps: LinksApiRoutesDependencies) {
 	return new Elysia({ name: "links.api-routes" })
 		.use(requireSession(deps.authSessionService))
-		.post("/api/v1/links", async ({ authPrincipal, body, request }) => {
+		.post("/api/v1/links", async ({ authPrincipal, body }) => {
 			if (!authPrincipal) {
 				return apiError(401, "unauthorized", "Authentication is required.");
 			}
@@ -42,7 +43,7 @@ export function linksApiRoutes(deps: LinksApiRoutesDependencies) {
 				return createLinkError(result.code);
 			}
 
-			return Response.json(toLinkDto(result.link, request), { status: 201 });
+			return Response.json(toLinkDto(result.link), { status: 201 });
 		})
 		.get("/api/v1/links", async ({ authPrincipal, request }) => {
 			if (!authPrincipal) {
@@ -57,11 +58,11 @@ export function linksApiRoutes(deps: LinksApiRoutesDependencies) {
 			});
 
 			return Response.json({
-				items: result.items.map((link) => toLinkDto(link, request)),
+				items: result.items.map((link) => toLinkDto(link)),
 				nextCursor: result.nextCursor,
 			});
 		})
-		.get("/api/v1/links/:id", async ({ authPrincipal, params, request }) => {
+		.get("/api/v1/links/:id", async ({ authPrincipal, params }) => {
 			if (!authPrincipal) {
 				return apiError(401, "unauthorized", "Authentication is required.");
 			}
@@ -75,7 +76,7 @@ export function linksApiRoutes(deps: LinksApiRoutesDependencies) {
 				return apiError(404, "not_found", "Link was not found.");
 			}
 
-			return Response.json(toLinkDto(link, request));
+			return Response.json(toLinkDto(link));
 		});
 }
 
@@ -89,10 +90,10 @@ type ParseCreateLinkBodyResult =
 	  }
 	| { ok: false };
 
-function toLinkDto(link: Link, request: Request) {
+function toLinkDto(link: Link) {
 	return {
 		id: link.id,
-		short_url: new URL(`/${link.code}`, request.url).toString(),
+		short_url: new URL(`/${link.code}`, config.publicFrontendOrigin).toString(),
 		code: link.code,
 		destination_url: link.destinationUrl,
 		title: link.title,

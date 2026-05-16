@@ -60,7 +60,7 @@ describe("Phase 2 links API routes", () => {
 		const responseBody = await response.json();
 		expect(responseBody).toEqual({
 			id: ownerAId,
-			short_url: "http://localhost/docs",
+			short_url: "http://localhost:3000/docs",
 			code: "docs",
 			destination_url: "https://example.com/docs",
 			title: "Docs",
@@ -176,7 +176,7 @@ describe("Phase 2 links API routes", () => {
 			items: [
 				{
 					id: ownerAId,
-					short_url: "http://localhost/owner-a",
+					short_url: "http://localhost:3000/owner-a",
 					code: "owner-a",
 					destination_url: "https://example.com/owner-a",
 					title: "owner-a",
@@ -218,7 +218,7 @@ describe("Phase 2 links API routes", () => {
 		expect(response.status).toBe(200);
 		expect(await response.json()).toEqual({
 			id: ownerAId,
-			short_url: "http://localhost/owner-a",
+			short_url: "http://localhost:3000/owner-a",
 			code: "owner-a",
 			destination_url: "https://example.com/owner-a",
 			title: "owner-a",

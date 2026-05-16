@@ -101,7 +101,7 @@ The following are explicitly excluded from the MVP:
         v
 [Nginx Reverse Proxy]
         |
-        +--> Static dashboard assets from Vite build
+        +--> Frontend static assets and browser catch-all route from Vite build
         |
         +--> Elysia backend
                   |
@@ -129,7 +129,7 @@ For MVP, skrol will run as a single VPS deployment containing:
 - Log output using Pino.
 - Deployment and migration scripts.
 
-The redirect path, API, and dashboard may share the same Elysia backend. The redirect path must remain minimal and performance-sensitive.
+The browser-facing short-link route is served by frontend catch-all route. Backend owns redirect-decision API at `/api/v1/redirect/:code`, and that path must remain minimal and performance-sensitive.
 
 ---
 
@@ -273,7 +273,7 @@ Recommended protected surfaces:
 - API key creation form after suspicious behavior.
 - Future public abuse report form, if added.
 
-Turnstile should not be placed directly in the normal `GET /:code` redirect path because that would degrade the core short-link experience and interfere with legitimate visitors.
+Turnstile should not be placed directly in the normal `/api/v1/redirect/:code` decision path because that would degrade the core short-link experience and interfere with legitimate visitors.
 
 ## 5.10 Hosting
 
@@ -680,7 +680,7 @@ GET /health
 ### Redirect
 
 ```text
-GET /:code
+GET /api/v1/redirect/:code
 ```
 
 ---
@@ -831,19 +831,19 @@ Behavior:
 ## 13.1 Endpoint
 
 ```http
-GET /:code
+GET /api/v1/redirect/:code
 ```
 
 Example:
 
 ```http
-GET https://skrol.ink/docs
+GET https://api.skrol.ink/api/v1/redirect/docs
 ```
 
 ## 13.2 Redirect Algorithm
 
 ```text
-1. Receive GET /:code.
+1. Receive GET /api/v1/redirect/:code from frontend.
 2. Normalize code to lowercase.
 3. Reject reserved app routes before link lookup where applicable.
 4. Lookup link by code using indexed query.
@@ -854,14 +854,14 @@ GET https://skrol.ink/docs
 9. If link has expires_at and expires_at <= now, return 410 Gone.
 10. Derive privacy-conscious analytics metadata.
 11. Insert click event without raw IP or full user-agent.
-12. Return 302 Found with Location set to destination_url.
+12. Return 200 OK with `{ "location": destination_url }`.
 ```
 
 ## 13.3 Status Codes
 
 | Condition     | Status |
 | ------------- | -----: |
-| Active link   |    302 |
+| Active link   |    200 |
 | Unknown code  |    404 |
 | Deleted link  |    404 |
 | Expired link  |    410 |
@@ -1679,8 +1679,7 @@ Responsibilities:
 
 - Terminate TLS.
 - Serve frontend static assets.
-- Proxy `/api/*` to Elysia backend.
-- Proxy `/:code` requests to Elysia backend.
+- Proxy `/api/*` and `/api/v1/redirect/*` requests to Elysia backend.
 - Add request ID header if possible.
 - Enforce reasonable request body limits.
 - Apply basic IP allow/deny rules if needed.
@@ -1886,7 +1885,7 @@ Deliverables:
 | API key management          | Better Auth API Key plugin configuration, generated schema, creation, verification, and revocation |
 | REST link creation          | `POST /api/v1/links` contract                                                                      |
 | Dashboard link creation     | Vite/TanStack dashboard requirements                                                               |
-| Public redirects            | `GET /:code` algorithm                                                                             |
+| Public redirects            | `GET /api/v1/redirect/:code` algorithm                                                             |
 | Custom aliases              | Alias validation and constraints                                                                   |
 | Link expiration             | Redirect expiration logic                                                                          |
 | Manual disablement          | Link status and admin/user controls                                                                |

@@ -8,6 +8,7 @@ const BASE_ENV = {
   BETTER_AUTH_URL: "http://localhost:3000",
   BETTER_AUTH_SECRET: "test-secret",
   FRONTEND_ORIGINS: "http://localhost:5173,https://app.skrol.local",
+  PUBLIC_FRONTEND_ORIGIN: "http://localhost:3000",
 };
 
 function snapshotEnv() {
@@ -19,6 +20,7 @@ function snapshotEnv() {
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     FRONTEND_ORIGINS: process.env.FRONTEND_ORIGINS,
+    PUBLIC_FRONTEND_ORIGIN: process.env.PUBLIC_FRONTEND_ORIGIN,
   };
 }
 
@@ -30,6 +32,7 @@ function restoreEnv(snapshot: ReturnType<typeof snapshotEnv>) {
   process.env.BETTER_AUTH_URL = snapshot.BETTER_AUTH_URL;
   process.env.BETTER_AUTH_SECRET = snapshot.BETTER_AUTH_SECRET;
   process.env.FRONTEND_ORIGINS = snapshot.FRONTEND_ORIGINS;
+  process.env.PUBLIC_FRONTEND_ORIGIN = snapshot.PUBLIC_FRONTEND_ORIGIN;
 }
 
 async function importConfig(tag: string) {
@@ -72,6 +75,7 @@ describe("auth config env", () => {
         "http://localhost:5173",
         "https://app.skrol.local",
       ]);
+      expect(config.publicFrontendOrigin).toBe("http://localhost:3000");
     } finally {
       restoreEnv(snapshot);
     }
@@ -114,7 +118,29 @@ describe("auth config env", () => {
         "http://localhost:5173",
         "https://skrol.ink",
       ]);
+      expect(config.publicFrontendOrigin).toBe("http://localhost:3000");
     } finally {
+      restoreEnv(snapshot);
+    }
+  });
+
+  it("rejects invalid PUBLIC_FRONTEND_ORIGIN", async () => {
+    const snapshot = snapshotEnv();
+    const originalExit = process.exit;
+
+    try {
+      Object.assign(process.env, BASE_ENV, {
+        PUBLIC_FRONTEND_ORIGIN: "not-a-url",
+      });
+      process.exit = ((code?: number) => {
+        throw new Error(`process.exit:${code ?? 0}`);
+      }) as typeof process.exit;
+
+      await expect(importConfig("invalid-public-frontend-origin")).rejects.toThrow(
+        "process.exit:1",
+      );
+    } finally {
+      process.exit = originalExit;
       restoreEnv(snapshot);
     }
   });

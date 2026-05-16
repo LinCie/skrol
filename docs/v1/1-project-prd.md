@@ -18,6 +18,8 @@ skrol is an API-first, privacy-conscious URL shortener for developers and techni
 
 The MVP is intentionally narrow. skrol is not a marketing automation platform, team collaboration product, or analytics surveillance tool. It is a developer-oriented utility that prioritizes clean API design, fast redirects, simple lifecycle controls, and limited aggregate analytics.
 
+Public short links are presented on the frontend public origin. Frontend owns browser-facing `/:code` route and asks backend redirect-decision API to resolve active links.
+
 The canonical short-link domain for the MVP is:
 
 `https://skrol.ink`
@@ -140,7 +142,7 @@ The MVP must allow authenticated users to:
 3. Use custom aliases.
 4. Set link expiration dates.
 5. Disable and soft-delete links.
-6. Redirect visitors through `skrol.ink/:code`.
+6. Redirect visitors through `skrol.ink/:code` via frontend catch-all route.
 7. View basic aggregate analytics.
 8. Create and revoke API keys.
 9. Avoid storing invasive analytics data.
@@ -295,10 +297,11 @@ Anything not listed here is outside MVP scope unless explicitly added through a 
 ## 12.3 Redirect Journey
 
 1. Visitor opens `https://skrol.ink/:code`.
-2. skrol looks up the link by code.
-3. skrol checks whether the link exists, is active, and has not expired.
-4. skrol records a privacy-conscious click event.
-5. skrol redirects the visitor to the destination URL using `302 Found`.
+2. Frontend catch-all route asks backend redirect-decision API for `/:code`.
+3. Backend looks up the link by code.
+4. Backend checks whether the link exists, is active, and has not expired.
+5. Backend records a privacy-conscious click event.
+6. Frontend redirects the visitor to the destination URL using `window.location.replace()`.
 
 Failure cases:
 
@@ -479,17 +482,17 @@ Reserved aliases:
 
 ### Public Redirect Endpoint
 
-`GET /:code`
+`GET /api/v1/redirect/:code`
 
 Example:
 
-`GET https://skrol.ink/docs`
+`GET https://api.skrol.ink/api/v1/redirect/docs`
 
 ### Requirements
 
 - Redirects must be publicly accessible.
 - Redirects must not require authentication.
-- Active links must redirect to their destination URL.
+- Active links must return destination URL to frontend.
 - Unknown codes must return `404 Not Found`.
 - Expired links must return `410 Gone`.
 - Disabled links must return `410 Gone`.
@@ -1068,7 +1071,7 @@ The MVP is complete when:
 4. A user can create a short link through the dashboard.
 5. A user can create a custom alias.
 6. A user can set an expiration date.
-7. A public visitor can access `https://skrol.ink/:code` and be redirected.
+7. A public visitor can access `https://skrol.ink/:code` and be redirected by frontend catch-all route.
 8. Expired links stop redirecting.
 9. Disabled links stop redirecting.
 10. A user can view a list of their links.

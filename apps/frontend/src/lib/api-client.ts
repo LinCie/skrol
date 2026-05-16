@@ -24,6 +24,10 @@ type ListLinksResponse = {
   nextCursor: string | null
 }
 
+type RedirectDecisionResponse = {
+  location: string
+}
+
 export class ProductApiError extends Error {
   code: string
   status: number
@@ -61,6 +65,12 @@ export async function createLink(input: {
 
 export async function getLink(id: string) {
   return productFetch<LinkDto>(`/api/v1/links/${encodeURIComponent(id)}`)
+}
+
+export async function resolveRedirect(code: string) {
+  return productFetch<RedirectDecisionResponse>(
+    `/api/v1/redirect/${encodeURIComponent(code)}`,
+  )
 }
 
 async function productFetch<T>(path: string, init: RequestInit = {}) {

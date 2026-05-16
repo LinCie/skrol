@@ -111,13 +111,33 @@ describe("public redirect route", () => {
     });
 
     const response = await app.handle(
-      new Request("http://localhost/not-a-real-code"),
+      new Request("http://localhost/api/v1/redirect/not-a-real-code"),
     );
 
     expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: "not_found" });
   });
 
-  it("does not set Set-Cookie on redirect", async () => {
+  it("returns location JSON and does not set Set-Cookie for active links", async () => {
+    const app = createApp({
+      getHealthStatus: async () => healthyStatus,
+      resolveRedirectUseCase: buildUseCase(async () => ({
+        status: 302 as const,
+        location: "https://example.com/docs",
+      })),
+    });
+
+    const response = await app.handle(
+      new Request("http://localhost/api/v1/redirect/docs"),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("set-cookie")).toBeNull();
+    expect(response.headers.get("location")).toBeNull();
+    expect(await response.json()).toEqual({ location: "https://example.com/docs" });
+  });
+
+  it("does not expose active public root redirects from backend", async () => {
     const app = createApp({
       getHealthStatus: async () => healthyStatus,
       resolveRedirectUseCase: buildUseCase(async () => ({
@@ -128,8 +148,7 @@ describe("public redirect route", () => {
 
     const response = await app.handle(new Request("http://localhost/docs"));
 
-    expect(response.status).toBe(302);
-    expect(response.headers.get("set-cookie")).toBeNull();
-    expect(response.headers.get("location")).toBe("https://example.com/docs");
+    expect(response.status).toBe(404);
+    expect(response.headers.get("location")).toBeNull();
   });
 });

@@ -20,7 +20,7 @@ export function registerPublicRedirectRoute(
   app: Elysia,
   deps: PublicRedirectRouteDependencies,
 ) {
-  app.get("/:code", async ({ params, request }) => {
+  app.get("/api/v1/redirect/:code", async ({ params, request }) => {
     if (isReservedRouteSegment(params.code)) {
       return notFoundResponse(404);
     }
@@ -31,12 +31,7 @@ export function registerPublicRedirectRoute(
     });
 
     if (decision.status === 302) {
-      return new Response(null, {
-        status: 302,
-        headers: {
-          Location: decision.location ?? "",
-        },
-      });
+      return Response.json({ location: decision.location ?? "" });
     }
 
     return notFoundResponse(decision.status);

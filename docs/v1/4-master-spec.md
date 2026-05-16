@@ -20,7 +20,7 @@ The MVP must allow users to:
 4. Create short links through a dashboard.
 5. Use custom aliases.
 6. Set expiration dates.
-7. Redirect visitors through `https://skrol.ink/:code`.
+7. Redirect visitors through `https://skrol.ink/:code` via frontend catch-all route.
 8. Disable, re-enable, and soft-delete links.
 9. View basic aggregate analytics.
 10. Use the product without tracking cookies, fingerprinting, long-term raw IP analytics, or per-visitor profiling.
@@ -342,10 +342,10 @@ System:
 GET /health
 ```
 
-Redirect:
+Redirect decision API:
 
 ```text
-GET /:code
+GET /api/v1/redirect/:code
 ```
 
 ---
@@ -564,7 +564,7 @@ Cloudflare Turnstile may be used selectively for:
 - suspicious link creation
 - suspicious API key creation
 
-Do not put Turnstile in the normal `GET /:code` redirect path.
+Do not put Turnstile in the normal `/api/v1/redirect/:code` decision path.
 
 ---
 
@@ -728,7 +728,7 @@ Acceptance criteria:
 
 ## Phase 1: Core Data and Redirect System
 
-Objective: implement the core short-link primitive and public redirect path.
+Objective: implement the core short-link primitive and backend redirect decision path.
 
 Deliverables:
 
@@ -739,7 +739,7 @@ Deliverables:
 - short-code generator
 - link creation service function
 - redirect lookup service
-- public `GET /:code`
+- public `GET /api/v1/redirect/:code`
 - privacy-conscious click-event insert
 - deleted/disabled/flagged/expired status handling
 
@@ -749,7 +749,7 @@ Acceptance criteria:
 - custom aliases are normalized lowercase
 - reserved aliases are rejected
 - unsafe URLs are rejected
-- active links return `302`
+- active links return `200` with location JSON
 - unknown links return `404`
 - deleted links return `404`
 - disabled, flagged, and expired links return `410`
@@ -909,7 +909,7 @@ Acceptance criteria:
 - signup/login works
 - API key flow works
 - API link creation works
-- public redirect works on `skrol.ink`
+- frontend redirect works on `skrol.ink`
 - unsafe URLs are rejected in production
 - rate limits are active
 - admin disablement works

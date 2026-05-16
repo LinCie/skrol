@@ -11,6 +11,7 @@ interface Config {
   betterAuthUrl: string;
   betterAuthSecret: string;
   frontendOrigins: string[];
+  publicFrontendOrigin: string;
   sentryDsn?: string;
 }
 
@@ -46,17 +47,23 @@ function parseFrontendOrigins(value: string): string[] {
       );
     }
 
-    try {
-      const parsed = new URL(origin);
-      if (parsed.origin !== origin || !["http:", "https:"].includes(parsed.protocol)) {
-        throw new Error("invalid origin");
-      }
-    } catch {
-      throw new Error(`Invalid FRONTEND_ORIGINS entry: ${origin}`);
-    }
+    parseOrigin(origin, "FRONTEND_ORIGINS entry");
   }
 
   return Array.from(new Set(origins));
+}
+
+function parseOrigin(value: string, key: string): string {
+  try {
+    const parsed = new URL(value);
+    if (parsed.origin !== value || !["http:", "https:"].includes(parsed.protocol)) {
+      throw new Error("invalid origin");
+    }
+  } catch {
+    throw new Error(`Invalid ${key} value: ${value}`);
+  }
+
+  return value;
 }
 
 export function loadConfig(): Config {
@@ -66,6 +73,20 @@ export function loadConfig(): Config {
       env === "production"
         ? "https://skrol.ink"
         : "http://localhost:3000,http://localhost:5173,https://skrol.ink";
+    const frontendOrigins = parseFrontendOrigins(
+      getEnvOptional("FRONTEND_ORIGINS", defaultFrontendOrigins) ?? "",
+    );
+    const defaultPublicFrontendOrigin = frontendOrigins[0];
+
+    if (!defaultPublicFrontendOrigin) {
+      throw new Error("FRONTEND_ORIGINS must include at least one origin.");
+    }
+
+    const publicFrontendOrigin = parseOrigin(
+      getEnvOptional("PUBLIC_FRONTEND_ORIGIN", defaultPublicFrontendOrigin) ??
+        defaultPublicFrontendOrigin,
+      "PUBLIC_FRONTEND_ORIGIN",
+    );
     const config: Config = {
       env,
       port: parseInt(getEnv("PORT", "3000"), 10),
@@ -73,9 +94,8 @@ export function loadConfig(): Config {
       redisUrl: getEnv("REDIS_URL"),
       betterAuthUrl: getEnv("BETTER_AUTH_URL"),
       betterAuthSecret: getEnv("BETTER_AUTH_SECRET"),
-      frontendOrigins: parseFrontendOrigins(
-        getEnvOptional("FRONTEND_ORIGINS", defaultFrontendOrigins) ?? "",
-      ),
+      frontendOrigins,
+      publicFrontendOrigin,
       sentryDsn: getEnvOptional("SENTRY_DSN"),
     };
 
