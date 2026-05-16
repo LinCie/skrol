@@ -63,6 +63,7 @@ function ApiKeysPage() {
 
       setApiKeys((currentApiKeys) => [response.api_key, ...currentApiKeys])
       setCreatedKey(response.key)
+      setLoadError(undefined)
       setName('')
       setExpiresInSeconds('')
     } catch {

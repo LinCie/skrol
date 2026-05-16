@@ -190,6 +190,22 @@ describe('dashboard api keys page', () => {
     expect(screen.getByRole('button', { name: /revoke production/i })).not.toBeNull()
   })
 
+  it('shows created key metadata after initial list load fails', async () => {
+    listApiKeysMock.mockRejectedValueOnce(new Error('server unavailable'))
+
+    renderAt('/dashboard/api-keys')
+
+    expect((await screen.findByRole('alert')).textContent).toMatch(/could not load/i)
+    fireEvent.change(screen.getByRole('textbox', { name: /key name/i }), {
+      target: { value: 'CLI' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /create api key/i }))
+
+    expect(await screen.findByRole('heading', { name: 'Copy this key now' })).not.toBeNull()
+    expect(screen.getByText('CLI')).not.toBeNull()
+    expect(screen.queryByText(/could not load/i)).toBeNull()
+  })
+
   it('asks confirmation before revoking an api key', async () => {
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
 
