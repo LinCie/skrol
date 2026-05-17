@@ -6,8 +6,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { LinkAnalyticsPanels, LinkAnalyticsPanelsView } from '../../routes/dashboard.links.$id'
 import { getLinkAnalytics } from '../../lib/api-client'
 
-vi.mock('../../lib/api-client', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../lib/api-client')>()
+vi.mock('../../lib/api-client', async () => {
+  const actual = await vi.importActual<typeof import('../../lib/api-client')>(
+    '../../lib/api-client',
+  )
 
   return {
     ...actual,

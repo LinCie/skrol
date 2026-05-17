@@ -88,6 +88,34 @@ describe("GET /api/v1/links/:id/analytics", () => {
     });
   });
 
+  it("returns 404 for soft-deleted owned link", async () => {
+    const app = createAnalyticsRouteTestApp({
+      authSessionService: {
+        resolveFromRequest: async () => ({
+          userId: ownerUserId,
+          sessionId: "session_123",
+          authSource: "session",
+        }),
+      },
+      apiKeyService: {
+        verify: async () => ({ valid: false as const }),
+      },
+      getLinkAnalyticsResult: { kind: "not_found" },
+    });
+
+    const response = await app.handle(
+      new Request("http://localhost/api/v1/links/link_deleted/analytics"),
+    );
+
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({
+      error: {
+        code: "not_found",
+        message: "Link was not found.",
+      },
+    });
+  });
+
   it("returns aggregate payload for owned active link", async () => {
     const result = {
       kind: "ok" as const,
