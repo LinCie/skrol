@@ -378,7 +378,7 @@ git commit -m "feat: add link analytics aggregate use case"
 - Create: `apps/backend/src/__tests__/phase4/link-analytics-route.test.ts`
 - Modify: `apps/backend/src/index.ts`
 
-- [ ] **Step 1: Write failing route tests using actual analytics route module**
+- [x] **Step 1: Write failing route tests using actual analytics route module**
 
 ```ts
 import { describe, expect, it } from "bun:test";
@@ -419,7 +419,7 @@ describe("GET /api/v1/links/:id/analytics", () => {
 
 `buildTestAppWithAnalyticsRoute(...)` must mount real `link-analytics.routes.ts` handlers with fake injectable dependencies. Do not test an empty app.
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 ```sh
 bun test src/__tests__/phase4/link-analytics-route.test.ts
@@ -427,7 +427,7 @@ bun test src/__tests__/phase4/link-analytics-route.test.ts
 
 Expected: FAIL until route is added and wired.
 
-- [ ] **Step 3: Implement route and wire module**
+- [x] **Step 3: Implement route and wire module**
 
 ```ts
 app.get("/api/v1/links/:id/analytics", async ({ params, authPrincipal }) => {
@@ -446,7 +446,7 @@ app.get("/api/v1/links/:id/analytics", async ({ params, authPrincipal }) => {
 Keep existing error envelope conventions.
 The route must use same principal-resolution path as existing link routes and support both dashboard session auth and API-key auth where existing link routes do.
 
-- [ ] **Step 4: Run route and nearby integration tests**
+- [x] **Step 4: Run route and nearby integration tests**
 
 ```sh
 bun test src/__tests__/phase4/link-analytics-route.test.ts src/__tests__/phase3/links-api-crud-routes.test.ts
@@ -454,7 +454,7 @@ bun test src/__tests__/phase4/link-analytics-route.test.ts src/__tests__/phase3/
 
 Expected: PASS and no Phase 3 route regressions.
 
-- [ ] **Step 5: Commit task**
+- [x] **Step 5: Commit task**
 
 ```sh
 git add apps/backend/src/modules/analytics/presentation/routes/link-analytics.routes.ts apps/backend/src/index.ts apps/backend/src/__tests__/phase4/link-analytics-route.test.ts
@@ -471,7 +471,7 @@ git commit -m "feat: expose link analytics api endpoint"
 - Modify: `apps/frontend/src/routes/dashboard.links.$id.tsx`
 - Create: `apps/frontend/src/__tests__/phase4/link-analytics-panel.test.tsx`
 
-- [ ] **Step 1: Write failing frontend tests by rendering real link-detail analytics UI**
+- [x] **Step 1: Write failing frontend tests by rendering real link-detail analytics UI**
 
 ```tsx
 import { describe, expect, it } from "vitest";
@@ -541,7 +541,7 @@ describe("link detail analytics panels", () => {
 
 Do not render static placeholder `<div>` nodes for behavior assertions. Tests must render real route component or extracted real analytics panel component and assert UI output from mocked API data.
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run from `apps/frontend`:
 
@@ -551,7 +551,7 @@ bun test src/__tests__/phase4/link-analytics-panel.test.tsx
 
 Expected: FAIL until UI/client integration is added.
 
-- [ ] **Step 3: Implement client and route integration**
+- [x] **Step 3: Implement client and route integration**
 
 ```ts
 export type LinkAnalyticsResponse = {
@@ -573,7 +573,7 @@ Route behavior:
 - render total/time/referrer/browser/device panels
 - render country panel only when `countries` exists
 
-- [ ] **Step 4: Run frontend tests**
+- [x] **Step 4: Run frontend tests**
 
 ```sh
 bun test src/__tests__/phase4/link-analytics-panel.test.tsx src/__tests__/phase3/link-management-page.test.tsx
@@ -581,7 +581,7 @@ bun test src/__tests__/phase4/link-analytics-panel.test.tsx src/__tests__/phase3
 
 Expected: PASS and no Phase 3 link-detail regression.
 
-- [ ] **Step 5: Commit task**
+- [x] **Step 5: Commit task**
 
 ```sh
 git add apps/frontend/src/lib/api-client.ts 'apps/frontend/src/routes/dashboard.links.$id.tsx' apps/frontend/src/__tests__/phase4/link-analytics-panel.test.tsx

@@ -31,6 +31,11 @@ function LinkDetailPage() {
   useEffect(() => {
     let isCurrent = true
 
+    setIsLoading(true)
+    setLink(undefined)
+    setError(undefined)
+    setIsNotFound(false)
+
     async function loadLink() {
       try {
         const response = await getLink(id)
@@ -282,7 +287,7 @@ function LinkDetailPage() {
         </div>
       </form>
 
-      <LinkAnalyticsPanels linkId={id} />
+      <LinkAnalyticsPanels key={id} linkId={id} />
     </div>
   )
 }
@@ -294,6 +299,10 @@ export function LinkAnalyticsPanels({ linkId }: { linkId: string }) {
 
   useEffect(() => {
     let isCurrent = true
+
+    setIsLoading(true)
+    setAnalytics(null)
+    setError(undefined)
 
     async function loadAnalytics() {
       try {
@@ -322,7 +331,6 @@ export function LinkAnalyticsPanels({ linkId }: { linkId: string }) {
       }
     }
 
-    setIsLoading(true)
     void loadAnalytics()
 
     return () => {
@@ -374,7 +382,7 @@ export function LinkAnalyticsPanelsView({
         title="Clicks over time"
         emptyLabel="No click history yet."
         items={analytics.clicks_over_time.map(
-          (row) => `${formatDateTime(row.bucket_start)}: ${row.clicks}`,
+          (row) => `${formatUtcDate(row.bucket_start)}: ${row.clicks}`,
         )}
       />
       <AnalyticsList
@@ -440,10 +448,10 @@ function AnalyticsList({
   )
 }
 
-function formatDateTime(value: string) {
+function formatUtcDate(value: string) {
   return new Intl.DateTimeFormat(undefined, {
     dateStyle: 'medium',
-    timeStyle: 'short',
+    timeZone: 'UTC',
   }).format(new Date(value))
 }
 
