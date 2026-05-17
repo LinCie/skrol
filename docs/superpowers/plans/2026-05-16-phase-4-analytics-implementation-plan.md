@@ -599,7 +599,7 @@ git commit -m "feat: add dashboard link analytics panels"
 - Modify: `apps/backend/src/__tests__/phase4/redirect-analytics-capture.test.ts`
 - Modify: `apps/frontend/src/__tests__/phase4/link-analytics-panel.test.tsx`
 
-- [ ] **Step 1: Add explicit assertions for every Phase 4 acceptance criterion**
+- [x] **Step 1: Add explicit assertions for every Phase 4 acceptance criterion**
 
 ```ts
 // backend + frontend assertions must explicitly prove:
@@ -611,7 +611,7 @@ git commit -m "feat: add dashboard link analytics panels"
 // - no raw IP/full UA persisted
 ```
 
-- [ ] **Step 2: Run backend Phase 4 suite**
+- [x] **Step 2: Run backend Phase 4 suite**
 
 Run from `apps/backend`:
 
@@ -621,7 +621,7 @@ bun test src/__tests__/phase4/*.test.ts
 
 Expected: PASS.
 
-- [ ] **Step 3: Run frontend Phase 4 suite**
+- [x] **Step 3: Run frontend Phase 4 suite**
 
 Run from `apps/frontend`:
 
@@ -631,7 +631,7 @@ bun test src/__tests__/phase4/*.test.tsx
 
 Expected: PASS.
 
-- [ ] **Step 4: Run targeted cross-phase regression checks**
+- [x] **Step 4: Run targeted cross-phase regression checks**
 
 Run from repo root:
 

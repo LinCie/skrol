@@ -6,10 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { LinkAnalyticsPanels, LinkAnalyticsPanelsView } from '../../routes/dashboard.links.$id'
 import { getLinkAnalytics } from '../../lib/api-client'
 
-vi.mock(import('../../lib/api-client'), async () => {
-  const actual = await vi.importActual<typeof import('../../lib/api-client')>(
-    '../../lib/api-client',
-  )
+vi.mock('../../lib/api-client', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/api-client')>()
 
   return {
     ...actual,
@@ -62,7 +60,7 @@ describe('link analytics panels', () => {
 
     expect(await screen.findByRole('heading', { name: 'Analytics' })).toBeTruthy()
     expect(screen.getByText('Total clicks')).toBeTruthy()
-    expect(screen.getByText((text) => text.includes('2026') && text.includes(': 3'))).toBeTruthy()
+    expect(screen.getByText((text) => /2026/.test(text) && /: 3$/.test(text))).toBeTruthy()
     expect(screen.getByText('direct: 2')).toBeTruthy()
   })
 
@@ -136,6 +134,9 @@ describe('link analytics panels', () => {
 
     expect(markup).toContain('No clicks recorded yet')
     expect(markup).toContain('Total clicks')
+    expect(markup).toContain('Referrers')
+    expect(markup).toContain('Browsers')
+    expect(markup).toContain('Devices')
   })
 
   it('hides country panel when countries field omitted', async () => {
@@ -171,6 +172,26 @@ describe('link analytics panels', () => {
     )
 
     expect(markup).toContain('Countries')
+  })
+
+  it('renders time series and breakdown items', async () => {
+    const markup = renderToStaticMarkup(
+      <LinkAnalyticsPanelsView
+        analytics={{
+          link_id: 'link_1',
+          total_clicks: 3,
+          clicks_over_time: [{ bucket_start: '2026-05-01T00:00:00.000Z', clicks: 3 }],
+          referrers: [{ referrer_domain: 'direct', clicks: 2 }],
+          browsers: [{ browser: 'Chrome', clicks: 2 }],
+          devices: [{ device: 'desktop', clicks: 3 }],
+        }}
+      />,
+    )
+
+    expect(markup).toMatch(/2026.*: 3/)
+    expect(markup).toContain('direct: 2')
+    expect(markup).toContain('Chrome: 2')
+    expect(markup).toContain('desktop: 3')
   })
 
   it('renders breakdown items', async () => {

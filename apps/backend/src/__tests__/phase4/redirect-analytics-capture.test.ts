@@ -14,6 +14,8 @@ describe("redirect analytics capture", () => {
 				os: string | null;
 				device: string | null;
 				isBot: boolean;
+				userAgent?: string;
+				rawIp?: string;
 			}
 			| null = null;
 
@@ -82,6 +84,8 @@ describe("redirect analytics capture", () => {
 			device: "desktop",
 			isBot: false,
 		});
+		expect(capturedInput).not.toHaveProperty("userAgent");
+		expect(capturedInput).not.toHaveProperty("rawIp");
 	});
 
 	it("detects iPhone browser and iPadOS tablet families", async () => {

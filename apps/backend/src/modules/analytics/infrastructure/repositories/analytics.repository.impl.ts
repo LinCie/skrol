@@ -12,10 +12,18 @@ import { ClickEvent } from "../../domain/click-event.entity";
 import { sql } from "kysely";
 
 export class AnalyticsRepositoryImpl implements AnalyticsRepository {
-	constructor(private readonly db: PostgresClient = getDatabase()) {}
+	private readonly db: PostgresClient | null;
+
+	constructor(db?: PostgresClient) {
+		this.db = db ?? null;
+	}
+
+	private get database(): PostgresClient {
+		return this.db ?? getDatabase();
+	}
 
 	async createClickEvent(input: CreateClickEventInput): Promise<ClickEvent> {
-		const returning = await this.db
+		const returning = await this.database
 			.insertInto("clickEvents")
 			.values(input)
 			.returningAll()
@@ -25,7 +33,7 @@ export class AnalyticsRepositoryImpl implements AnalyticsRepository {
 	}
 
 	async getTotalClicks(input: { linkId: string }): Promise<number> {
-		const row = await this.db
+		const row = await this.database
 			.selectFrom("clickEvents")
 			.select(sql<number>`count(*)::int`.as("clicks"))
 			.where("linkId", "=", input.linkId)
@@ -39,7 +47,7 @@ export class AnalyticsRepositoryImpl implements AnalyticsRepository {
 		startInclusiveUtc: Date;
 		endExclusiveUtc: Date;
 	}): Promise<AnalyticsTimeSeriesRow[]> {
-		const rows = await this.db
+		const rows = await this.database
 			.selectFrom("clickEvents")
 			.select(({ eb }) => [
 				sql<string>`to_char(date_trunc('day', timezone('UTC', ${eb.ref("clickedAt")})), 'YYYY-MM-DD"T"00:00:00.000Z')`.as(
@@ -106,7 +114,7 @@ export class AnalyticsRepositoryImpl implements AnalyticsRepository {
 		linkId: string;
 		limit: number;
 	}): Promise<AnalyticsCountryRow[]> {
-		const rows = await this.db
+		const rows = await this.database
 			.selectFrom("clickEvents")
 			.select(({ eb }) => [
 				sql<string>`trim(${eb.ref("country")})`.as("country"),
@@ -130,7 +138,7 @@ export class AnalyticsRepositoryImpl implements AnalyticsRepository {
 		fallback: string;
 		input: { linkId: string; limit?: number };
 	}): Promise<T[]> {
-		const rowsQuery = this.db
+		const rowsQuery = this.database
 			.selectFrom("clickEvents")
 			.select(({ eb }) => [
 				sql<string>`coalesce(nullif(trim(${eb.ref(input.column)}), ''), ${input.fallback})`.as(
