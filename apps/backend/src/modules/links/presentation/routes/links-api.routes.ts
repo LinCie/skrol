@@ -5,7 +5,7 @@ import { requireApiPrincipal } from "@/modules/auth/presentation/api-principal-g
 import { requireSameOriginForSessionWrite } from "@/modules/auth/presentation/session-write-origin-guard";
 import { normalizeAlias } from "@/modules/links/domain/alias-policy";
 import type { Link } from "@/modules/links/domain/link.entity";
-import type { LinksModule } from "@/modules/links/links.module";
+import type { LinksModuleLike } from "@/modules/links/links.module";
 import config from "@/shared/config";
 import { apiError } from "@/shared/presentation/api-error";
 
@@ -14,11 +14,11 @@ export interface LinksApiRoutesDependencies {
 	apiKeyService: Pick<ApiKeyService, "verify">;
 	allowedOrigins: string[];
 	linksModule: Pick<
-		LinksModule,
-		| "createLinkUseCase"
-		| "listLinksUseCase"
-		| "getLinkDetailUseCase"
-		| "updateLinkUseCase"
+			LinksModuleLike,
+			| "createLinkUseCase"
+			| "listLinksUseCase"
+			| "getLinkDetailUseCase"
+			| "updateLinkUseCase"
 		| "deleteLinkUseCase"
 	>;
 }

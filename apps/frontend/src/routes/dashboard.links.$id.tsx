@@ -1,8 +1,14 @@
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { ProductApiError, deleteLink, getLink, updateLink } from '../lib/api-client'
-import type { LinkDto } from '../lib/api-client'
+import {
+  ProductApiError,
+  deleteLink,
+  getLink,
+  getLinkAnalytics,
+  updateLink,
+} from '../lib/api-client'
+import type { LinkAnalyticsResponse, LinkDto } from '../lib/api-client'
 
 export const Route = createFileRoute('/dashboard/links/$id')({
   component: LinkDetailPage,
@@ -275,8 +281,170 @@ function LinkDetailPage() {
           </button>
         </div>
       </form>
+
+      <LinkAnalyticsPanels linkId={id} />
     </div>
   )
+}
+
+export function LinkAnalyticsPanels({ linkId }: { linkId: string }) {
+  const [analytics, setAnalytics] = useState<LinkAnalyticsResponse['data'] | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | undefined>()
+
+  useEffect(() => {
+    let isCurrent = true
+
+    async function loadAnalytics() {
+      try {
+        const response = await getLinkAnalytics(linkId)
+
+        if (!isCurrent) {
+          return
+        }
+
+        setAnalytics(response.data)
+        setError(undefined)
+      } catch (caughtError) {
+        if (!isCurrent) {
+          return
+        }
+
+        if (caughtError instanceof ProductApiError) {
+          setError(caughtError.message)
+        } else {
+          setError('Could not load analytics. Try again.')
+        }
+      } finally {
+        if (isCurrent) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    setIsLoading(true)
+    void loadAnalytics()
+
+    return () => {
+      isCurrent = false
+    }
+  }, [linkId])
+
+  if (isLoading) {
+    return <p className="text-sm text-slate-600">Loading analytics...</p>
+  }
+
+  if (error) {
+    return (
+      <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+        {error}
+      </p>
+    )
+  }
+
+  if (!analytics) {
+    return null
+  }
+
+  return <LinkAnalyticsPanelsView analytics={analytics} />
+}
+
+export function LinkAnalyticsPanelsView({
+  analytics,
+}: {
+  analytics: LinkAnalyticsResponse['data']
+}) {
+  return (
+    <section className="space-y-4 rounded-2xl border border-slate-200 p-6">
+      <div>
+        <h3 className="text-lg font-semibold tracking-tight text-slate-950">Analytics</h3>
+        {analytics.total_clicks === 0 ? (
+          <p className="mt-1 text-sm text-slate-600">No clicks recorded yet.</p>
+        ) : null}
+      </div>
+
+      <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Metric label="Total clicks" value={analytics.total_clicks.toString()} />
+        <Metric label="Referrers" value={analytics.referrers.length.toString()} />
+        <Metric label="Browsers" value={analytics.browsers.length.toString()} />
+        <Metric label="Devices" value={analytics.devices.length.toString()} />
+      </dl>
+
+      <AnalyticsList
+        title="Clicks over time"
+        emptyLabel="No click history yet."
+        items={analytics.clicks_over_time.map(
+          (row) => `${formatDateTime(row.bucket_start)}: ${row.clicks}`,
+        )}
+      />
+      <AnalyticsList
+        title="Referrers"
+        emptyLabel="No referrer data yet."
+        items={analytics.referrers.map((row) => `${row.referrer_domain}: ${row.clicks}`)}
+      />
+      <AnalyticsList
+        title="Browsers"
+        emptyLabel="No browser data yet."
+        items={analytics.browsers.map((row) => `${row.browser}: ${row.clicks}`)}
+      />
+      <AnalyticsList
+        title="Devices"
+        emptyLabel="No device data yet."
+        items={analytics.devices.map((row) => `${row.device}: ${row.clicks}`)}
+      />
+
+      {analytics.countries !== undefined ? (
+        <AnalyticsList
+          title="Countries"
+          emptyLabel="No country data yet."
+          items={analytics.countries.map((row) => `${row.country}: ${row.clicks}`)}
+        />
+      ) : null}
+    </section>
+  )
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-slate-200 p-4">
+      <dt className="text-sm font-medium text-slate-500">{label}</dt>
+      <dd className="mt-2 text-2xl font-bold tracking-tight text-slate-950">{value}</dd>
+    </div>
+  )
+}
+
+function AnalyticsList({
+  title,
+  items,
+  emptyLabel,
+}: {
+  title: string
+  items: string[]
+  emptyLabel: string
+}) {
+  return (
+    <section className="space-y-2">
+      <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">{title}</h4>
+      {items.length === 0 ? (
+        <p className="text-sm text-slate-600">{emptyLabel}</p>
+      ) : (
+        <ul className="space-y-1 text-sm text-slate-800">
+          {items.map((item) => (
+            <li key={item} className="rounded-lg bg-slate-50 px-3 py-2">
+              {item}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
+function formatDateTime(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value))
 }
 
 function formatDate(value: string) {

@@ -29,13 +29,24 @@ import {
 } from "@/modules/auth/presentation/routes/mount-better-auth";
 import { apiKeyRoutes } from "@/modules/auth/presentation/routes/api-key-routes";
 import { LinksModule } from "@/modules/links/links.module";
+import type { LinksModuleLike } from "@/modules/links/links.module";
 import { linksApiRoutes } from "@/modules/links/presentation/routes/links-api.routes";
-import type { CreateLinkInput } from "@/modules/links/application/create-link.use-case";
+import type {
+  CreateLinkInput,
+  CreateLinkResult,
+} from "@/modules/links/application/create-link.use-case";
 import type { ListLinksInput } from "@/modules/links/application/list-links.use-case";
+import type { ListLinksResult } from "@/modules/links/application/list-links.use-case";
 import type { GetLinkDetailInput } from "@/modules/links/application/get-link-detail.use-case";
+import type { Link } from "@/modules/links/domain/link.entity";
 import type { UpdateLinkInput } from "@/modules/links/application/update-link.use-case";
+import type { UpdateLinkResult } from "@/modules/links/application/update-link.use-case";
 import type { DeleteLinkInput } from "@/modules/links/application/delete-link.use-case";
+import type { DeleteLinkResult } from "@/modules/links/application/delete-link.use-case";
 import { UserProfilesRepository } from "@/modules/users/infrastructure/user-profiles.repository";
+import { AnalyticsModule } from "@/modules/analytics/analytics.module";
+import { registerLinkAnalyticsRoutes } from "@/modules/analytics/presentation/routes/link-analytics.routes";
+import type { LinksRepository } from "@/modules/links/application/links.repository";
 
 export interface CreateAppDependencies {
   getHealthStatus?: (databaseUrl: string) => Promise<HealthStatus>;
@@ -43,8 +54,10 @@ export interface CreateAppDependencies {
   betterAuthHandler?: BetterAuthHandler;
   authSessionService?: AuthSessionService;
   apiKeyService?: ApiKeyService;
+  analyticsModule?: Pick<AnalyticsModule, "getLinkAnalyticsUseCase">;
   linksModule?: Pick<
-    LinksModule,
+    LinksModuleLike,
+    | "repository"
     | "createLinkUseCase"
     | "listLinksUseCase"
     | "getLinkDetailUseCase"
@@ -52,6 +65,25 @@ export interface CreateAppDependencies {
     | "deleteLinkUseCase"
   >;
 }
+
+type LazyLinksModule = {
+  repository: LinksRepository;
+  createLinkUseCase: {
+    execute(input: CreateLinkInput): Promise<CreateLinkResult>;
+  };
+  listLinksUseCase: {
+    execute(input: ListLinksInput): Promise<ListLinksResult>;
+  };
+  getLinkDetailUseCase: {
+    execute(input: GetLinkDetailInput): Promise<Link | null>;
+  };
+  updateLinkUseCase: {
+    execute(input: UpdateLinkInput): Promise<UpdateLinkResult>;
+  };
+  deleteLinkUseCase: {
+    execute(input: DeleteLinkInput): Promise<DeleteLinkResult>;
+  };
+};
 
 export function createApp(deps: CreateAppDependencies = {}): Elysia {
   const healthStatusResolver = deps.getHealthStatus ?? getHealthStatus;
@@ -83,9 +115,13 @@ export function createApp(deps: CreateAppDependencies = {}): Elysia {
           >[0],
         )
       : null);
-  const linksModule = deps.linksModule ?? createLazyLinksModule();
+  const lazyLinksModule = createLazyLinksModule();
+  const linksModule = deps.linksModule ?? lazyLinksModule;
   const redirectModule = new RedirectModule({
     resolveRedirectUseCase: deps.resolveRedirectUseCase,
+  });
+  const analyticsModule = deps.analyticsModule ?? new AnalyticsModule({
+    linksRepository: linksModule.repository,
   });
 
   const app = new Elysia();
@@ -127,6 +163,14 @@ export function createApp(deps: CreateAppDependencies = {}): Elysia {
       linksModule,
     }),
   );
+  app.use(
+    registerLinkAnalyticsRoutes({
+      authSessionService,
+      apiKeyService:
+        apiKeyService ?? { verify: async () => ({ valid: false as const }) },
+      analyticsModule,
+    }),
+  );
 
   redirectModule.registerPublicRoutes(app);
 
@@ -149,21 +193,43 @@ export function createApp(deps: CreateAppDependencies = {}): Elysia {
   return app;
 }
 
-function createLazyLinksModule(): Pick<
-  LinksModule,
-  | "createLinkUseCase"
-  | "listLinksUseCase"
-  | "getLinkDetailUseCase"
-  | "updateLinkUseCase"
-  | "deleteLinkUseCase"
-> {
+function createLazyLinksModule(): LazyLinksModule {
   let module: LinksModule | null = null;
   const getModule = () => {
     module ??= new LinksModule();
     return module;
   };
 
-  return {
+  const lazyModule = {
+    repository: {
+      codeExists: async (code: string) =>
+        getModule().repository.codeExists(code),
+      findByCode: async (code: string) => getModule().repository.findByCode(code),
+      createLink: async (input: Parameters<LinksRepository["createLink"]>[0]) =>
+        getModule().repository.createLink(input),
+      listByOwner: async (input: Parameters<LinksRepository["listByOwner"]>[0]) =>
+        getModule().repository.listByOwner(input),
+      findByIdForOwner: async (
+        id: string,
+        ownerUserId: string,
+      ) =>
+        getModule().repository.findByIdForOwner(id, ownerUserId),
+      findOwnedLinkForRead: async (
+        input: Parameters<LinksRepository["findOwnedLinkForRead"]>[0],
+      ) =>
+        getModule().repository.findOwnedLinkForRead(input),
+      updateLinkForOwner: async (
+        input: Parameters<LinksRepository["updateLinkForOwner"]>[0],
+      ) =>
+        getModule().repository.updateLinkForOwner(input),
+      softDeleteLinkForOwner: async (
+        input: Parameters<LinksRepository["softDeleteLinkForOwner"]>[0],
+      ) =>
+        getModule().repository.softDeleteLinkForOwner(input),
+      createAuditLog: async (
+        input: Parameters<LinksRepository["createAuditLog"]>[0],
+      ) => getModule().repository.createAuditLog(input),
+    },
     createLinkUseCase: {
       execute: async (input: CreateLinkInput) =>
         getModule().createLinkUseCase.execute(input),
@@ -184,7 +250,9 @@ function createLazyLinksModule(): Pick<
       execute: async (input: DeleteLinkInput) =>
         getModule().deleteLinkUseCase.execute(input),
     },
-  } as never;
+  } satisfies LazyLinksModule;
+
+  return lazyModule;
 }
 
 async function bootstrap() {

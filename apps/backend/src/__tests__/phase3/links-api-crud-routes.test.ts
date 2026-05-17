@@ -342,6 +342,19 @@ function createLinksApiTestApp(input: { bearerValid?: boolean } = {}) {
 		authSessionService,
 		apiKeyService: apiKeyService as ApiKeyService,
 		linksModule: {
+			repository: {
+				codeExists: async () => false,
+				findByCode: async () => null,
+				createLink: async () => {
+					throw new Error("unused");
+				},
+				listByOwner: async () => ({ items: [], nextCursor: null }),
+				findByIdForOwner: async () => null,
+				findOwnedLinkForRead: async () => null,
+				updateLinkForOwner: async () => null,
+				softDeleteLinkForOwner: async () => null,
+				createAuditLog: async () => {},
+			},
 			createLinkUseCase: {
 				execute: async (createInput: CreateLinkInput) => {
 					createInputs.push(createInput);

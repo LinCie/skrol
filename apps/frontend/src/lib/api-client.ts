@@ -44,6 +44,18 @@ export type UpdateLinkInput = {
   status?: 'active' | 'disabled'
 }
 
+export type LinkAnalyticsResponse = {
+  data: {
+    link_id: string
+    total_clicks: number
+    clicks_over_time: Array<{ bucket_start: string; clicks: number }>
+    referrers: Array<{ referrer_domain: string; clicks: number }>
+    browsers: Array<{ browser: string; clicks: number }>
+    devices: Array<{ device: string; clicks: number }>
+    countries?: Array<{ country: string; clicks: number }>
+  }
+}
+
 type RedirectDecisionResponse = {
   location: string
 }
@@ -121,6 +133,10 @@ export async function deleteApiKey(id: string) {
   return productFetch<void>(`/api/v1/api-keys/${encodeURIComponent(id)}`, {
     method: 'DELETE',
   })
+}
+
+export async function getLinkAnalytics(id: string) {
+  return productFetch<LinkAnalyticsResponse>(`/api/v1/links/${encodeURIComponent(id)}/analytics`)
 }
 
 async function productFetch<T>(path: string, init: RequestInit = {}) {
